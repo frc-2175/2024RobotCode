@@ -16,6 +16,7 @@ import wpimath.geometry
 import wpimath.units
 import wpimath.kinematics
 
+import constants
 import drivetrain
 import swervemodule
 
@@ -49,8 +50,6 @@ class MyRobot(wpilib.TimedRobot):
         swervemodule.steerOutputMin = wpilib.SmartDashboard.getNumber("steerOutputMin", swervemodule.steerOutputMin)
         swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber("steerOutputMax", swervemodule.steerOutputMax)
 
-        # self.swerve.updatePIDConfig()
-
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
         self.swerve.updateOdometry()
@@ -65,7 +64,7 @@ class MyRobot(wpilib.TimedRobot):
             -self.xspeedLimiter.calculate(
                 wpimath.applyDeadband(self.leftStick.getX(), 0.02)
             )
-            * drivetrain.kMaxSpeed
+            * constants.kMaxSpeed
         )
 
         # Get the y speed or sideways/strafe speed. We are inverting this because
@@ -75,7 +74,7 @@ class MyRobot(wpilib.TimedRobot):
             -self.yspeedLimiter.calculate(
                 wpimath.applyDeadband(-self.leftStick.getY(), 0.02)
             )
-            * drivetrain.kMaxSpeed
+            * constants.kMaxSpeed
         )
 
         # Get the rate of angular rotation. We are inverting this because we want a
@@ -86,7 +85,7 @@ class MyRobot(wpilib.TimedRobot):
             self.rotLimiter.calculate(
                 wpimath.applyDeadband(self.rightStick.getX(), 0.02)
             )
-            * drivetrain.kMaxAngularSpeed
+            * constants.kMaxAngularSpeed
         )
 
         if self.leftStick.getRawButtonPressed(8):

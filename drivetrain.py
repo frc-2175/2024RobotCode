@@ -10,11 +10,9 @@ import wpimath.geometry
 import wpimath.kinematics
 import wpimath.units
 import navx
+
+import constants
 import swervemodule
-
-kMaxSpeed = 3.0  # 3 meters per second
-kMaxAngularSpeed = math.pi  # 1/2 rotation per second
-
 
 class Drivetrain:
     """
@@ -92,9 +90,11 @@ class Drivetrain:
                 periodSeconds,
             )
         )
+        
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
-            swerveModuleStates, kMaxSpeed
+            swerveModuleStates, constants.kMaxSpeed
         )
+
         self.frontLeft.setDesiredState(swerveModuleStates[0])
         self.frontRight.setDesiredState(swerveModuleStates[1])
         self.backLeft.setDesiredState(swerveModuleStates[2])
@@ -117,3 +117,11 @@ class Drivetrain:
         self.frontRight.setDesiredState(state)
         self.backLeft.setDesiredState(state)
         self.backRight.setDesiredState(state)
+        
+    def getError(self) -> list[tuple[float, float]]:
+        return [
+            self.frontLeft.getError(),
+            self.frontRight.getError(),
+            self.backLeft.getError(),
+            self.backRight.getError(),
+        ]

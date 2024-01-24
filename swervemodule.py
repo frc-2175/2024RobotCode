@@ -13,15 +13,12 @@ import wpimath.trajectory
 import wpimath.units
 import rev
 
-kWheelDiameter = wpimath.units.inchesToMeters(4)
-kEncoderResolution = 4096
-kModuleMaxAngularVelocity = math.pi
-kModuleMaxAngularAcceleration = math.tau
+import constants
 
 driveP = 0.1
 driveI = 0
 driveD = 0
-driveFF = 0
+driveFF = 1 / constants.kMaxSpeed
 driveOutputMin = -0.5
 driveOutputMax = 0.5
 
@@ -47,6 +44,8 @@ wpilib.SmartDashboard.putNumber("steerOutputMin", steerOutputMin)
 wpilib.SmartDashboard.putNumber("steerOutputMax", steerOutputMax)
 
 class SwerveModule:
+    targetedState: wpimath.kinematics.SwerveModuleState
+
     def __init__(
         self,
         driveMotorId: int,
@@ -66,32 +65,26 @@ class SwerveModule:
         self.steerEncoder = self.steerMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
         self.steerEncoder.setInverted(True)
 
-        # Gains are for example purposes only - must be determined for your own robot!
         self.drivePIDController = self.driveMotor.getPIDController()
-
-        # Gains are for example purposes only - must be determined for your own robot!
         self.steerPIDController = self.steerMotor.getPIDController()
-
         self.steerPIDController.setPositionPIDWrappingEnabled(True)
         self.steerPIDController.setPositionPIDWrappingMaxInput(math.pi)
         self.steerPIDController.setPositionPIDWrappingMinInput(-math.pi)
 
-        # Set the distance per pulse for the drive encoder. We can simply use the
-        # distance traveled for one rotation of the wheel divided by the encoder
-        # resolution.
-        kDrivingMotorReduction =  (45.0 * 22) / (13 * 15)
-
+        # Set the distance traveled per rotation for the drive motor.
         self.driveEncoder.setPositionConversionFactor(
-            math.pi * kWheelDiameter / kDrivingMotorReduction
-        )
-        self.driveEncoder.setVelocityConversionFactor(
-            (math.pi * kWheelDiameter / kDrivingMotorReduction) / 60.0
+            math.pi * constants.kWheelDiameter / constants.kDriveMotorReduction
         )
 
-        # Set the distance (in this case, angle) in radians per pulse for the steer encoder.
-        # This is the the angle through an entire rotation (2 * pi) divided by the
-        # encoder resolution.
+        # 
+        self.driveEncoder.setVelocityConversionFactor(
+            (math.pi * constants.kWheelDiameter / constants.kDriveMotorReduction) / 60.0
+        )
+
+        # The Spark MAX gives us its position in rotations, so we need to convert it to radians.
         self.steerEncoder.setPositionConversionFactor(math.tau)
+
+        # Set the steering PID controller to drive using position(angle) instead of velocity/
         self.steerPIDController.setReference(0, rev.CANSparkMax.ControlType.kPosition)
 
     def getState(self) -> wpimath.kinematics.SwerveModuleState:
@@ -126,7 +119,6 @@ class SwerveModule:
         self.steerPIDController.setD(steerD)
         self.steerPIDController.setFF(steerFF)
         self.steerPIDController.setOutputRange(driveOutputMin, driveOutputMax)
-        self.steerPIDController.setFeedbackDevice(self.steerEncoder)
 
     def setDesiredState(
         self, desiredState: wpimath.kinematics.SwerveModuleState
@@ -150,6 +142,8 @@ class SwerveModule:
         # driving.
         state.speed *= (state.angle - encoderRotation).cos()
 
+        self.targetedState = state
+
         # Calculate the drive output from the drive PID controller.
         self.drivePIDController.setReference(
             state.speed,
@@ -161,3 +155,10 @@ class SwerveModule:
             state.angle.radians(),
             rev.CANSparkMax.ControlType.kPosition,
         )
+        
+    def getError(self) -> tuple[float, float]:
+        driveError = self.driveEncoder.getVelocity()
+
+        steerError = self.targetedState.angle - wpimath.geometry.Rotation2d(self.steerEncoder.getPosition())
+
+        return (driveError, steerError.radians())

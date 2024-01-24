@@ -6,21 +6,18 @@
 #
 
 import wpilib
-import wpimath
 import wpilib.drive
+import wpilib.shuffleboard
+
+import wpimath
 import wpimath.filter
 import wpimath.controller
 import wpimath.geometry
 import wpimath.units
-import drivetrain
+import wpimath.kinematics
 
-kP = 0.01
-kI = 2e-4
-kD = 0
-kIz = 15
-kFF = 0
-kMaxOutput = 0.5
-kMinOutput = -0.5
+import drivetrain
+import swervemodule
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
@@ -35,6 +32,25 @@ class MyRobot(wpilib.TimedRobot):
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
+        # self.swerve.gyro.setAngleAdjustment(0)
+
+    def robotPeriodic(self) -> None:
+        swervemodule.driveP = wpilib.SmartDashboard.getNumber("driveP", swervemodule.driveP)
+        swervemodule.driveI = wpilib.SmartDashboard.getNumber("driveI", swervemodule.driveI)
+        swervemodule.driveD = wpilib.SmartDashboard.getNumber("driveD", swervemodule.driveD)
+        swervemodule.driveFF = wpilib.SmartDashboard.getNumber("driveFF", swervemodule.driveFF)
+        swervemodule.driveOutputMin = wpilib.SmartDashboard.getNumber("driveOutputMin", swervemodule.driveOutputMin)
+        swervemodule.driveOutputMax = wpilib.SmartDashboard.getNumber("driveOutputMax", swervemodule.driveOutputMax)
+
+        swervemodule.steerP = wpilib.SmartDashboard.getNumber("steerP", swervemodule.steerP)
+        swervemodule.steerI = wpilib.SmartDashboard.getNumber("steerI", swervemodule.steerI)
+        swervemodule.steerD = wpilib.SmartDashboard.getNumber("steerD", swervemodule.steerD)
+        swervemodule.steerFF = wpilib.SmartDashboard.getNumber("steerFF", swervemodule.steerFF)
+        swervemodule.steerOutputMin = wpilib.SmartDashboard.getNumber("steerOutputMin", swervemodule.steerOutputMin)
+        swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber("steerOutputMax", swervemodule.steerOutputMax)
+
+        # self.swerve.updatePIDConfig()
+
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
         self.swerve.updateOdometry()
@@ -47,7 +63,7 @@ class MyRobot(wpilib.TimedRobot):
         # negative values when we push forward.
         xSpeed = (
             -self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.leftStick.getY(), 0.02)
+                wpimath.applyDeadband(self.leftStick.getX(), 0.02)
             )
             * drivetrain.kMaxSpeed
         )
@@ -57,7 +73,7 @@ class MyRobot(wpilib.TimedRobot):
         # return positive values when you pull to the right by default.
         ySpeed = (
             -self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.leftStick.getX(), 0.02)
+                wpimath.applyDeadband(-self.leftStick.getY(), 0.02)
             )
             * drivetrain.kMaxSpeed
         )
@@ -67,10 +83,22 @@ class MyRobot(wpilib.TimedRobot):
         # mathematics). Xbox controllers return positive values when you pull to
         # the right by default.
         rot = (
-            -self.rotLimiter.calculate(
+            self.rotLimiter.calculate(
                 wpimath.applyDeadband(self.rightStick.getX(), 0.02)
             )
             * drivetrain.kMaxAngularSpeed
         )
 
-        self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+        if self.leftStick.getRawButtonPressed(8):
+            self.swerve.gyro.reset()
+        
+        if self.leftStick.getRawButton(2): # down
+            self.swerve.setAllState(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d.fromDegrees(180)))
+        elif self.leftStick.getRawButton(3): # up
+            self.swerve.setAllState(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d.fromDegrees(0)))
+        elif self.leftStick.getRawButton(4): # left
+            self.swerve.setAllState(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d.fromDegrees(270)))
+        elif self.leftStick.getRawButton(5): # right
+            self.swerve.setAllState(wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d.fromDegrees(90)))
+        else:
+            self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())

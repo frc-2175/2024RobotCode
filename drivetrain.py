@@ -9,6 +9,7 @@ import wpilib
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.units
+import navx
 import swervemodule
 
 kMaxSpeed = 3.0  # 3 meters per second
@@ -22,24 +23,24 @@ class Drivetrain:
 
     def __init__(self) -> None:
         self.frontLeftLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(12.25)
-        )
-        self.frontRightLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
-        )
-        self.backLeftLocation = wpimath.geometry.Translation2d(
             wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(12.25)
         )
-        self.backRightLocation = wpimath.geometry.Translation2d(
+        self.frontRightLocation = wpimath.geometry.Translation2d(
+            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(12.25)
+        )
+        self.backLeftLocation = wpimath.geometry.Translation2d(
             wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(-12.25)
         )
+        self.backRightLocation = wpimath.geometry.Translation2d(
+            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
+        )
 
-        self.frontLeft = swervemodule.SwerveModule(21, 25)
-        self.frontRight = swervemodule.SwerveModule(24, 28)
-        self.backLeft = swervemodule.SwerveModule(22, 26)
-        self.backRight = swervemodule.SwerveModule(23, 27)
+        self.frontLeft = swervemodule.SwerveModule(25, 21, 0)
+        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi / 2)
+        self.backLeft = swervemodule.SwerveModule(26, 22, 3 * math.pi / 2)
+        self.backRight = swervemodule.SwerveModule(27, 23, math.pi)
 
-        self.gyro = wpilib.AnalogGyro(0)
+        self.gyro = navx.AHRS.create_spi()
 
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
             self.frontLeftLocation,
@@ -59,7 +60,11 @@ class Drivetrain:
             ),
         )
 
-        self.gyro.reset()
+    def updatePIDConfig(self) -> None:
+        self.frontLeft.updatePIDConfig()
+        self.frontRight.updatePIDConfig()
+        self.backLeft.updatePIDConfig()
+        self.backRight.updatePIDConfig()
 
     def drive(
         self,
@@ -106,3 +111,9 @@ class Drivetrain:
                 self.backRight.getPosition(),
             ),
         )
+
+    def setAllState(self, state: wpimath.kinematics.SwerveModuleState) -> None:
+        self.frontLeft.setDesiredState(state)
+        self.frontRight.setDesiredState(state)
+        self.backLeft.setDesiredState(state)
+        self.backRight.setDesiredState(state)

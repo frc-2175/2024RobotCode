@@ -3,7 +3,6 @@ import wpimath.units
 
 kWheelDiameter = wpimath.units.inchesToMeters(3)
 kTrackWidth = wpimath.units.inchesToMeters(24.5)
-kEncoderResolution = 4096
 kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
 

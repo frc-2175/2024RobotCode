@@ -14,6 +14,7 @@ import navx
 import constants
 import swervemodule
 
+
 class Drivetrain:
     """
     Represents a swerve drive style drivetrain.
@@ -90,7 +91,7 @@ class Drivetrain:
                 periodSeconds,
             )
         )
-        
+
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, constants.kMaxSpeed
         )
@@ -112,12 +113,27 @@ class Drivetrain:
             ),
         )
 
+    def resetOdometry(self, pose: wpimath.geometry.Pose2d) -> None:
+        self.odometry.resetPosition(
+            self.gyro.getRotation2d(),
+            (
+                self.frontLeft.getPosition(),
+                self.frontRight.getPosition(),
+                self.backLeft.getPosition(),
+                self.backRight.getPosition(),
+            ),
+            pose,
+        )
+
+    def getPose(self) -> wpimath.geometry.Pose2d:
+        return self.odometry.getPose()
+
     def setAllState(self, state: wpimath.kinematics.SwerveModuleState) -> None:
         self.frontLeft.setDesiredState(state)
         self.frontRight.setDesiredState(state)
         self.backLeft.setDesiredState(state)
         self.backRight.setDesiredState(state)
-        
+
     def getError(self) -> list[tuple[float, float]]:
         return [
             self.frontLeft.getError(),

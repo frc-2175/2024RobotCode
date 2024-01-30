@@ -5,6 +5,8 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import sys
+
 import wpilib
 
 import wpimath
@@ -13,6 +15,7 @@ import wpimath.geometry
 import wpimath.kinematics
 
 import constants
+from utils.rioprofile import Profiler
 
 import subsystems.swervemodule as swervemodule
 from subsystems.drivetrain import Drivetrain
@@ -49,6 +52,10 @@ class MyRobot(wpilib.TimedRobot):
         self.headingController = SwerveHeadingController(self.swerve.gyro)
 
         self.swerve.gyro.reset()
+
+        self.profiler = Profiler()
+        self.runProfiler = False
+        wpilib.SmartDashboard.putBoolean("runProfiler", self.runProfiler)
 
     def robotPeriodic(self) -> None:
 
@@ -96,8 +103,19 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
 
-    def autonomousPeriodic(self) -> None: 
-        self.driveWithJoystick(False)
+    def autonomousPeriodic(self) -> None:
+        newRunProfiler = wpilib.SmartDashboard.getBoolean("runProfiler", False)
+        if not self.runProfiler and newRunProfiler:
+            # profiler toggled on
+            self.profiler = Profiler()
+            sys.setprofile(self.profiler.profile_func)
+        elif self.runProfiler and not newRunProfiler:
+            # profiler toggled off
+            sys.setprofile(None)
+            self.profiler.finalize()
+            with open("profile.json", "w") as f:
+                self.profiler.write_speedscope(f)
+        self.runProfiler = newRunProfiler
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButtonPressed(8):

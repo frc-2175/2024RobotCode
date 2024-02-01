@@ -21,6 +21,7 @@ import wpimath.kinematics
 import constants
 import drivetrain
 import swervemodule
+import arm
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -28,8 +29,11 @@ class MyRobot(wpilib.TimedRobot):
         """Robot initialization function"""
         self.swerve = drivetrain.Drivetrain()
 
+        self.arm = arm.Arm(30)
+
         self.leftStick = wpilib.Joystick(0)
         self.rightStick = wpilib.Joystick(1)
+        self.gamePad = wpilib.Joystick(2)
 
         # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
@@ -118,6 +122,11 @@ class MyRobot(wpilib.TimedRobot):
             )
         else:
             self.driveWithJoystick(True)
+        
+        
+
+    def testPeriodic(self) -> None:
+        self.arm.setArmSpeed(self.gamePad.getY())
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (

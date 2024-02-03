@@ -93,7 +93,9 @@ class MyRobot(wpilib.TimedRobot):
         )
 
         wpilib.SmartDashboard.putNumber("ArmAngle", self.arm.getArmAngle())
-        
+        wpilib.SmartDashboard.putNumber("ArmSpeed", self.arm.getArmSpeed())
+
+        self.arm.periodic()
 
 
     def autonomousPeriodic(self) -> None:
@@ -130,11 +132,41 @@ class MyRobot(wpilib.TimedRobot):
             )
         else:
             self.driveWithJoystick(True)
+
+        if (self.gamePad.getRawButton(3)):
+            self.arm.setArmAngleDegrees(60)
+        elif (self.gamePad.getRawButton(4)):
+            self.arm.setArmAngleDegrees(90)
+        elif (self.gamePad.getRawButton(1)):
+            self.arm.setArmAngleDegrees(30)
+        else:
+            self.arm.setArmAngleDegrees(0)
+
+        #self.arm.setArmSpeed(-self.gamePad.getY())
+
+        shooterSpeed = 0.0
+
+        if(self.gamePad.getRawAxis(3) > 0.5 ):
+            shooterSpeed = 0.5
+        
+        self.shooter.SetShooterSpeedBoth(shooterSpeed)
+
+        self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(5))
         
         
 
     def testPeriodic(self) -> None:
-        self.arm.setArmSpeed(-self.gamePad.getY())
+
+        if (self.gamePad.getRawButton(3)):
+            self.arm.setArmAngleDegrees(60)
+        elif (self.gamePad.getRawButton(4)):
+            self.arm.setArmAngleDegrees(90)
+        elif (self.gamePad.getRawButton(1)):
+            self.arm.setArmAngleDegrees(30)
+        else:
+            self.arm.setArmAngleDegrees(0)
+
+        #self.arm.setArmSpeed(-self.gamePad.getY())
 
         shooterSpeed = 0.0
 

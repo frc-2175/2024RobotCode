@@ -44,9 +44,13 @@ class MyRobot(wpilib.TimedRobot):
 
         self.drivetrainTab = Shuffleboard.getTab("Drivetrain")
 
+        wpilib.SmartDashboard.putData("Field", self.field)
         # self.swerve.gyro.setAngleAdjustment(0)
 
     def robotPeriodic(self) -> None:
+
+        #Log swerve module positions
+        #wpilib.SmartDashboard.putNumberArray("swerve", [self.swerve.frontLeft.getPosition().angle.degrees(), 0.5])
         swervemodule.driveP = wpilib.SmartDashboard.getNumber(
             "driveP", swervemodule.driveP
         )
@@ -84,12 +88,11 @@ class MyRobot(wpilib.TimedRobot):
         swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
             "steerOutputMax", swervemodule.steerOutputMax
         )
-
-        wpilib.SmartDashboard.putData(self.field)
+        
+        
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
-        self.swerve.updateOdometry()
 
     def teleopPeriodic(self) -> None:
         self.field.setRobotPose(self.swerve.getPose())

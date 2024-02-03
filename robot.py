@@ -49,11 +49,6 @@ class MyRobot(wpilib.TimedRobot):
 
         wpilib.SmartDashboard.putData("Field", self.field)
         # self.swerve.gyro.setAngleAdjustment(0)
-      
-        rawArmDegrees = self.arm.angleMotor.getEncoder().getPosition() * 360.0
-        armDegrees = (rawArmDegrees / 60) / 5
-        wpilib.SmartDashboard.putNumber("ArmAngle", armDegrees)
-        wpilib.SmartDashboard.putNumber("RawArmAngle", rawArmDegrees)
 
     def robotPeriodic(self) -> None:
 
@@ -96,8 +91,10 @@ class MyRobot(wpilib.TimedRobot):
         swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
             "steerOutputMax", swervemodule.steerOutputMax
         )
+
+        wpilib.SmartDashboard.putNumber("ArmAngle", self.arm.getArmAngle())
         
-        
+
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)

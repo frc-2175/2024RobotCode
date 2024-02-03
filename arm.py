@@ -7,5 +7,10 @@ class Arm:
         # self.angleMotor.IdleMode(1)
         self.angleMotor.setInverted(True)
 
+        self.angleEncoder = self.angleMotor.getEncoder()
+
     def setArmSpeed(self, motorSpeed):
         self.angleMotor.set(motorSpeed)
+    
+    def getArmAngle(self):
+        return (((self.angleEncoder.getPosition()) / 60) / 5) * 360

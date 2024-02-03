@@ -43,11 +43,8 @@ class MyRobot(wpilib.TimedRobot):
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
 
-        self.field = wpilib.Field2d()
+        self.swerve.updatePIDConfig()
 
-        self.drivetrainTab = Shuffleboard.getTab("Drivetrain")
-
-        wpilib.SmartDashboard.putData("Field", self.field)
         # self.swerve.gyro.setAngleAdjustment(0)
 
     def robotPeriodic(self) -> None:
@@ -102,7 +99,6 @@ class MyRobot(wpilib.TimedRobot):
         self.driveWithJoystick(False)
 
     def teleopPeriodic(self) -> None:
-        self.field.setRobotPose(self.swerve.getPose())
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
 
@@ -138,7 +134,7 @@ class MyRobot(wpilib.TimedRobot):
         elif (self.gamePad.getRawButton(4)):
             self.arm.setArmAngleDegrees(90)
         elif (self.gamePad.getRawButton(1)):
-            self.arm.setArmAngleDegrees(30)
+            self.arm.setArmAngleDegrees(15)
         else:
             self.arm.setArmAngleDegrees(0)
 
@@ -158,11 +154,11 @@ class MyRobot(wpilib.TimedRobot):
     def testPeriodic(self) -> None:
 
         if (self.gamePad.getRawButton(3)):
-            self.arm.setArmAngleDegrees(60)
+            self.arm.setArmAngleDegrees(30)
         elif (self.gamePad.getRawButton(4)):
             self.arm.setArmAngleDegrees(90)
         elif (self.gamePad.getRawButton(1)):
-            self.arm.setArmAngleDegrees(30)
+            self.arm.setArmAngleDegrees(5)
         else:
             self.arm.setArmAngleDegrees(0)
 
@@ -203,11 +199,5 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)
         wpilib.SmartDashboard.putNumber("Y Speed", ySpeed)
         wpilib.SmartDashboard.putNumber("Rotation Speed", rot)
-
-        line = self.field.getObject("moveVec")
-
-        asdfjiko = wpimath.geometry.Translation2d(xSpeed, ySpeed).rotateBy(self.swerve.getPose().rotation())
-        line.setPose(self.field.getRobotPose() + wpimath.geometry.Transform2d(asdfjiko, asdfjiko.angle()))
-
         
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())

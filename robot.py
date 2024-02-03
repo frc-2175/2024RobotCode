@@ -22,6 +22,7 @@ import constants
 import drivetrain
 import swervemodule
 import arm
+import shooter
 
 
 class MyRobot(wpilib.TimedRobot):
@@ -30,6 +31,8 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve = drivetrain.Drivetrain()
 
         self.arm = arm.Arm(30)
+
+        self.shooter = shooter.Shooter(31, 32, 33)
 
         self.leftStick = wpilib.Joystick(0)
         self.rightStick = wpilib.Joystick(1)
@@ -46,6 +49,11 @@ class MyRobot(wpilib.TimedRobot):
 
         wpilib.SmartDashboard.putData("Field", self.field)
         # self.swerve.gyro.setAngleAdjustment(0)
+      
+        rawArmDegrees = self.arm.angleMotor.getEncoder().getPosition() * 360.0
+        armDegrees = (rawArmDegrees / 60) / 5
+        wpilib.SmartDashboard.putNumber("ArmAngle", armDegrees)
+        wpilib.SmartDashboard.putNumber("RawArmAngle", rawArmDegrees)
 
     def robotPeriodic(self) -> None:
 
@@ -129,7 +137,16 @@ class MyRobot(wpilib.TimedRobot):
         
 
     def testPeriodic(self) -> None:
-        self.arm.setArmSpeed(self.gamePad.getY())
+        self.arm.setArmSpeed(-self.gamePad.getY())
+
+        shooterSpeed = 0.0
+
+        if(self.gamePad.getRawAxis(3) > 0.5 ):
+            shooterSpeed = 0.5
+        
+        self.shooter.SetShooterSpeedBoth(shooterSpeed)
+
+        self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(5))
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (

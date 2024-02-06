@@ -1,6 +1,6 @@
 import rev
 import math
-
+import wpimath.filter
 class Arm:
     def __init__(self, angleMotorId) -> None:
         self.angleMotor = rev.CANSparkMax(angleMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
@@ -24,6 +24,9 @@ class Arm:
         self.anglePIDController.setI(0)
         self.anglePIDController.setD(0)
 
+        self.targetAngle = 0
+        self.angleLimiter = wpimath.filter.SlewRateLimiter(135)
+
     
     def getArmSpeed(self):
         return self.angleMotor.get()
@@ -32,7 +35,7 @@ class Arm:
         return self.rotToDegrees(self.angleEncoder.getPosition())
     
     def setArmAngleDegrees(self, angle):
-        self.anglePIDController.setReference(self.rotFromDegrees(angle), rev.CANSparkMax.ControlType.kPosition)
+        self.targetAngle = angle
 
     def rotToDegrees(self, angle): 
         return angle / 60 / 5 * 360
@@ -42,6 +45,7 @@ class Arm:
     
     def periodic(self):
         self.anglePIDController.setFF(0)
-    
+        angle = self.angleLimiter.calculate(self.targetAngle)
+        self.anglePIDController.setReference(self.rotFromDegrees(angle), rev.CANSparkMax.ControlType.kPosition)
     # def setArmAngle(self, angle):   
         

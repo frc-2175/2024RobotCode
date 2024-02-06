@@ -131,23 +131,32 @@ class MyRobot(wpilib.TimedRobot):
 
         if (self.gamePad.getRawButton(3)):
             self.arm.setArmAngleDegrees(60)
+            shooterPower = .5
         elif (self.gamePad.getRawButton(4)):
             self.arm.setArmAngleDegrees(90)
+            shooterPower = .2
         elif (self.gamePad.getRawButton(1)):
             self.arm.setArmAngleDegrees(15)
+            shooterPower = .5
         else:
             self.arm.setArmAngleDegrees(0)
+            shooterPower = .5
 
         #self.arm.setArmSpeed(-self.gamePad.getY())
-
-        shooterSpeed = 0.0
-
-        if(self.gamePad.getRawAxis(3) > 0.5 ):
-            shooterSpeed = 0.5
         
-        self.shooter.SetShooterSpeedBoth(shooterSpeed)
+        intakeSpeed = 0.5
+          
+        if(self.gamePad.getRawAxis(2) > 0.5 ):
+            self.shooter.SetShooterSpeedBoth(shooterPower)
+        else:
+            self.shooter.SetShooterSpeedBoth(0)
 
-        self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(5))
+        if(self.gamePad.getRawAxis(3) > 0.5):
+            self.shooter.SetIntakeSpeed(-1)
+        else:
+            self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(1))
+
+        
         
         
 
@@ -176,7 +185,7 @@ class MyRobot(wpilib.TimedRobot):
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (
             self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.leftStick.getX(), 0.02)
+                wpimath.applyDeadband(self.leftStick.getX(), 0.1)
             )
             * constants.kMaxSpeed
         )
@@ -184,14 +193,14 @@ class MyRobot(wpilib.TimedRobot):
         # we invert the Y axis of the joysticks
         ySpeed = (
             self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(-self.leftStick.getY(), 0.02)
+                wpimath.applyDeadband(-self.leftStick.getY(), 0.1)
             )
             * constants.kMaxSpeed
         )
         
         rot = (
             self.rotLimiter.calculate(
-                wpimath.applyDeadband(self.rightStick.getX(), 0.02)
+                wpimath.applyDeadband(self.rightStick.getX(), 0.1)
             )
             * constants.kMaxAngularSpeed
         )

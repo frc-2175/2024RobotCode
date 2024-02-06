@@ -6,6 +6,7 @@ class Shooter:
         self.shooterMotorUpper = rev.CANSparkMax(upperShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushed)
+        self.motorIntake.setInverted(True)
 
         # TODO: Figure out how to set idle mode
         # self.shooterMotorLower.IdleMode(1)

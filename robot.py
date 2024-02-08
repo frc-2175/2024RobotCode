@@ -129,11 +129,11 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.driveWithJoystick(True)
 
-        if (self.gamePad.getRawButton(3)):
+        if self.gamePad.getRawButton(3):
             self.arm.setArmAngleDegrees(60)
-        elif (self.gamePad.getRawButton(4)):
+        elif self.gamePad.getRawButton(4):
             self.arm.setArmAngleDegrees(90)
-        elif (self.gamePad.getRawButton(1)):
+        elif self.gamePad.getRawButton(1):
             self.arm.setArmAngleDegrees(15)
         else:
             self.arm.setArmAngleDegrees(0)

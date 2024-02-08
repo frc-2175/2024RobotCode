@@ -12,9 +12,10 @@ class Shooter:
         else:
             self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushed)
 
-        # TODO: Figure out how to set idle mode
-        # self.shooterMotorLower.IdleMode(1)
-        # self.shooterMotorUpper.IdleMode(1)
+        self.motorIntake.setInverted(True)
+
+        self.shooterMotorLower.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.shooterMotorUpper.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
     
     def SetShooterSpeedBoth(self, motorSpeed):
         self.shooterMotorLower.set(motorSpeed)

@@ -132,10 +132,10 @@ class MyRobot(wpilib.TimedRobot):
         if self.gamePad.getRawButton(3):
             self.arm.setArmAngleDegrees(60)
             shooterPower = .5
-        elif (self.gamePad.getRawButton(4)):
+        elif self.gamePad.getRawButton(4):
             self.arm.setArmAngleDegrees(90)
             shooterPower = .2
-        elif (self.gamePad.getRawButton(1)):
+        elif self.gamePad.getRawButton(1):
             self.arm.setArmAngleDegrees(15)
             shooterPower = .5
         else:

@@ -148,6 +148,7 @@ class MyRobot(wpilib.TimedRobot):
           
         if(self.gamePad.getRawAxis(2) > 0.5 ):
             self.shooter.SetShooterSpeedBoth(shooterPower)
+            self.shooter.SetShooterSpeedUpper(shooterPower * 1.1)  
         else:
             self.shooter.SetShooterSpeedBoth(0)
 

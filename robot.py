@@ -35,7 +35,6 @@ def squareInput(input: float, power: float = 2) -> float:
 
     return sign * abs(input) ** power
 
-
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
@@ -56,13 +55,14 @@ class MyRobot(wpilib.TimedRobot):
 
         self.swerve.updatePIDConfig()
 
+        # self.swerve.gyro.setAngleAdjustment(0)
         self.headingController = swerveheading.SwerveHeadingController(self.swerve.gyro)
 
         self.swerve.gyro.reset()
-
     def robotPeriodic(self) -> None:
-        # Log swerve module positions
-        # wpilib.SmartDashboard.putNumberArray("swerve", [self.swerve.frontLeft.getPosition().angle.degrees(), 0.5])
+
+        #Log swerve module positions
+        #wpilib.SmartDashboard.putNumberArray("swerve", [self.swerve.frontLeft.getPosition().angle.degrees(), 0.5])
         swervemodule.driveP = wpilib.SmartDashboard.getNumber(
             "driveP", swervemodule.driveP
         )
@@ -105,6 +105,7 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("ArmSpeed", self.arm.getArmSpeed())
 
         self.arm.periodic()
+
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
@@ -150,48 +151,24 @@ class MyRobot(wpilib.TimedRobot):
             self.arm.setArmPreset("low")
             shooterPower = constants.kShooterPresets["low"]
         else:
-            self.arm.setArmAngleDegrees(0)
-            shooterPower = .5
-
-        #self.arm.setArmSpeed(-self.gamePad.getY())
-        
-        intakeSpeed = 0.5
+            self.arm.setArmPreset("intake")
+            shooterPower = constants.kShooterPresets["intake"]
           
-        if(self.gamePad.getRawAxis(2) > 0.5 ):
-            self.shooter.SetShooterSpeedBoth(shooterPower)
+        if self.gamePad.getRawAxis(2) > 0.5:
+            self.shooter.setShooterSpeedBoth(shooterPower)
         else:
             self.shooter.setShooterSpeedBoth(0)
 
-        if(self.gamePad.getRawAxis(3) > 0.5):
-            self.shooter.SetIntakeSpeed(-1)
+        if self.gamePad.getRightTriggerAxis() > 0.5:
+            self.shooter.setIntakeSpeed(self.gamePad.getRightTriggerAxis())
+        elif self.gamePad.getLeftTriggerAxis() > 0.5:
+            self.shooter.setIntakeSpeed(-self.gamePad.getLeftTriggerAxis())
         else:
-            self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(1))
+            self.shooter.setIntakeSpeed(0)
 
-        
-        
-        
+        if self.gamePad.getRightTriggerAxis() > 0.5:
+            self.shooter.intakeNote()
 
-    def testPeriodic(self) -> None:
-
-        if (self.gamePad.getRawButton(3)):
-            self.arm.setArmAngleDegrees(30)
-        elif (self.gamePad.getRawButton(4)):
-            self.arm.setArmAngleDegrees(90)
-        elif (self.gamePad.getRawButton(1)):
-            self.arm.setArmAngleDegrees(5)
-        else:
-            self.arm.setArmAngleDegrees(0)
-
-        #self.arm.setArmSpeed(-self.gamePad.getY())
-
-        shooterSpeed = 0.0
-
-        if(self.gamePad.getRawAxis(3) > 0.5 ):
-            shooterSpeed = 0.5
-        
-        self.shooter.SetShooterSpeedBoth(shooterSpeed)
-
-        self.shooter.SetIntakeSpeed(-self.gamePad.getRawAxis(5))
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (
@@ -208,7 +185,7 @@ class MyRobot(wpilib.TimedRobot):
             )
             * constants.kMaxSpeed
         )
-
+        
         rot = (
             self.rotLimiter.calculate(
                 squareInput(wpimath.applyDeadband(self.rightStick.getX(), 0.1))
@@ -221,5 +198,6 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)
         wpilib.SmartDashboard.putNumber("Y Speed", ySpeed)
         wpilib.SmartDashboard.putNumber("Rotation Speed", rot)
-
+        
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+        

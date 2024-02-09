@@ -152,7 +152,7 @@ class MyRobot(wpilib.TimedRobot):
           
         if(self.gamePad.getRawAxis(2) > 0.5 ):
             self.shooter.SetShooterSpeedBoth(shooterPower)
-            self.shooter.SetShooterSpeedUpper(shooterPower * 1.1)  
+            self.shooter.SetShooterSpeedUpper(shooterPower * 0.8)  
         else:
             self.shooter.SetShooterSpeedBoth(0)
 
@@ -210,15 +210,14 @@ class MyRobot(wpilib.TimedRobot):
             * constants.kMaxAngularSpeed
         )
 
+        wpilib.SmartDashboard.putNumber("pre-rot", rot)
+        wpilib.SmartDashboard.putNumber("headingdesired", self.headingToMaintain.radians())
+        wpilib.SmartDashboard.putNumber("heading", self.swerve.gyro.getRotation2d().radians())
 
-        newShouldMaintain = xSpeed and ySpeed and not rot
-        
-        if self.shouldMaintain != newShouldMaintain:
-            self.shouldMaintain = newShouldMaintain
-            if self.shouldMaintain:
-                rot = self.maintainHeadingPID.calculate(self.headingToMaintain.radians())
-            else:
-                self.headingToMaintain = self.swerve.gyro.getRotation2d()
+        if rot != 0:
+            self.headingToMaintain = self.swerve.gyro.getRotation2d()
+        else:
+            rot = -self.maintainHeadingPID.calculate(self.swerve.gyro.getRotation2d().radians(), self.headingToMaintain.radians())
 
 
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)

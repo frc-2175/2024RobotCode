@@ -5,44 +5,30 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-import math
-
 import wpilib
-import wpilib.drive
-from wpilib.shuffleboard import Shuffleboard
 
 import wpimath
 import wpimath.filter
-import wpimath.controller
 import wpimath.geometry
-import wpimath.units
 import wpimath.kinematics
 
 import constants
-import drivetrain
-import swervemodule
-import arm
-import shooter
-import swerveheading
+import subsystems.swervemodule as swervemodule
+from subsystems.drivetrain import Drivetrain
+from subsystems.arm import Arm
+from subsystems.shooter import Shooter
+from utils.swerveheading import SwerveHeadingController
+import utils.math
 
-
-def squareInput(input: float, power: float = 2) -> float:
-    sign = 0
-    if input > 0:
-        sign = 1
-    elif input < 0:
-        sign = -1
-
-    return sign * abs(input) ** power
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        self.swerve = drivetrain.Drivetrain()
+        self.swerve = Drivetrain()
 
-        self.arm = arm.Arm(30)
+        self.arm = Arm(30)
 
-        self.shooter = shooter.Shooter(31, 32, 33)
+        self.shooter = Shooter(31, 32, 33)
 
         self.leftStick = wpilib.Joystick(0)
         self.rightStick = wpilib.Joystick(1)
@@ -55,8 +41,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.swerve.updatePIDConfig()
 
-        # self.swerve.gyro.setAngleAdjustment(0)
-        self.headingController = swerveheading.SwerveHeadingController(self.swerve.gyro)
+        self.headingController = SwerveHeadingController(self.swerve.gyro)
 
         self.swerve.gyro.reset()
     def robotPeriodic(self) -> None:
@@ -173,7 +158,9 @@ class MyRobot(wpilib.TimedRobot):
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (
             self.xspeedLimiter.calculate(
-                squareInput(wpimath.applyDeadband(self.leftStick.getX(), 0.1))
+                utils.math.signedPower(
+                    wpimath.applyDeadband(self.leftStick.getX(), 0.1)
+                )
             )
             * constants.kMaxSpeed
         )
@@ -181,14 +168,18 @@ class MyRobot(wpilib.TimedRobot):
         # we invert the Y axis of the joysticks
         ySpeed = (
             self.yspeedLimiter.calculate(
-                squareInput(wpimath.applyDeadband(-self.leftStick.getY(), 0.1))
+                utils.math.signedPower(
+                    wpimath.applyDeadband(-self.leftStick.getY(), 0.1)
+                )
             )
             * constants.kMaxSpeed
         )
         
         rot = (
             self.rotLimiter.calculate(
-                squareInput(wpimath.applyDeadband(self.rightStick.getX(), 0.1))
+                utils.math.signedPower(
+                    wpimath.applyDeadband(self.rightStick.getX(), 0.1)
+                )
             )
             * constants.kMaxAngularSpeed
         )

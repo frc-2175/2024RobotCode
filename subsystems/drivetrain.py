@@ -12,7 +12,7 @@ import wpimath.units
 import navx
 
 import constants
-import swervemodule
+import subsystems.swervemodule as swervemodule
 
 
 class Drivetrain:

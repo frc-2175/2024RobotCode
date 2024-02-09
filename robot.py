@@ -45,6 +45,10 @@ class MyRobot(wpilib.TimedRobot):
 
         self.swerve.updatePIDConfig()
 
+        self.shouldMaintain = False
+        self.headingToMaintain = self.swerve.gyro.getRotation2d()
+        self.maintainHeadingPID = wpimath.controller.PIDController(1.0, 0.0, 0.0)
+
         # self.swerve.gyro.setAngleAdjustment(0)
 
     def robotPeriodic(self) -> None:
@@ -205,6 +209,17 @@ class MyRobot(wpilib.TimedRobot):
             )
             * constants.kMaxAngularSpeed
         )
+
+
+        newShouldMaintain = xSpeed and ySpeed and not rot
+        
+        if self.shouldMaintain != newShouldMaintain:
+            self.shouldMaintain = newShouldMaintain
+            if self.shouldMaintain:
+                rot = self.maintainHeadingPID.calculate(self.headingToMaintain.radians())
+            else:
+                self.headingToMaintain = self.swerve.gyro.getRotation2d()
+
 
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)
         wpilib.SmartDashboard.putNumber("Y Speed", ySpeed)

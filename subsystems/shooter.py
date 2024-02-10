@@ -22,8 +22,8 @@ class Shooter:
 
         self.shooterEncoder = self.shooterMotorLower.getEncoder()
 
-        self.shooterUpperPIDController = self.shooterMotorLower.getPIDController()
         self.shooterLowerPIDController = self.shooterMotorLower.getPIDController()
+        self.shooterUpperPIDController = self.shooterMotorUpper.getPIDController()
 
         self.shooterUpperPIDController.setFF(0)
     

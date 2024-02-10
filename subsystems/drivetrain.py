@@ -34,10 +34,10 @@ class Drivetrain:
             wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
         )
 
-        self.frontLeft = swervemodule.SwerveModule(25, 21, 0)
-        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi / 2)
-        self.backLeft = swervemodule.SwerveModule(26, 22, 3 * math.pi / 2)
-        self.backRight = swervemodule.SwerveModule(27, 23, math.pi)
+        self.frontLeft = swervemodule.SwerveModule(25, 21, 0, True)
+        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi / 2, True)
+        self.backLeft = swervemodule.SwerveModule(26, 22, 3 * math.pi / 2, True)
+        self.backRight = swervemodule.SwerveModule(27, 23, math.pi, True)
 
         self.gyro = navx.AHRS.create_spi()
 
@@ -48,16 +48,16 @@ class Drivetrain:
             self.backRightLocation,
         )
 
-        self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
-            self.kinematics,
-            self.gyro.getRotation2d(),
-            (
-                self.frontLeft.getPosition(),
-                self.frontRight.getPosition(),
-                self.backLeft.getPosition(),
-                self.backRight.getPosition(),
-            ),
-        )
+        # self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
+        #     self.kinematics,
+        #     self.gyro.getRotation2d(),
+        #     (
+        #         self.frontLeft.getPosition(),
+        #         self.frontRight.getPosition(),
+        #         self.backLeft.getPosition(),
+        #         self.backRight.getPosition(),
+        #     ),
+        # )
 
     def updatePIDConfig(self) -> None:
         self.frontLeft.updatePIDConfig()
@@ -122,30 +122,33 @@ class Drivetrain:
 
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
-        self.odometry.update(
-            self.gyro.getRotation2d(),
-            (
-                self.frontLeft.getPosition(),
-                self.frontRight.getPosition(),
-                self.backLeft.getPosition(),
-                self.backRight.getPosition(),
-            ),
-        )
+        # self.odometry.update(
+        #     self.gyro.getRotation2d(),
+        #     (
+        #         self.frontLeft.getPosition(),
+        #         self.frontRight.getPosition(),
+        #         self.backLeft.getPosition(),
+        #         self.backRight.getPosition(),
+        #     ),
+        # )
+        pass
 
     def resetOdometry(self, pose: wpimath.geometry.Pose2d) -> None:
-        self.odometry.resetPosition(
-            self.gyro.getRotation2d(),
-            (
-                self.frontLeft.getPosition(),
-                self.frontRight.getPosition(),
-                self.backLeft.getPosition(),
-                self.backRight.getPosition(),
-            ),
-            pose,
-        )
+        # self.odometry.resetPosition(
+        #     self.gyro.getRotation2d(),
+        #     (
+        #         self.frontLeft.getPosition(),
+        #         # self.frontRight.getPosition(),
+        #         # self.backLeft.getPosition(),
+        #         # self.backRight.getPosition(),
+        #     ),
+        #     pose,
+        # )
+        pass
 
-    def getPose(self) -> wpimath.geometry.Pose2d:
-        return self.odometry.getPose()
+    # def getPose(self) -> wpimath.geometry.Pose2d:
+    #     # return self.odometry.getPose()
+    #     pass
 
     def setAllState(self, state: wpimath.kinematics.SwerveModuleState) -> None:
         self.frontLeft.setDesiredState(state)
@@ -160,3 +163,9 @@ class Drivetrain:
             self.backLeft.getError(),
             self.backRight.getError(),
         ]
+    
+    def periodic(self):
+        self.frontLeft.periodic()
+        self.frontRight.periodic()
+        self.backLeft.periodic()
+        self.backRight.periodic()

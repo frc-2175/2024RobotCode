@@ -155,6 +155,10 @@ class MyRobot(wpilib.TimedRobot):
             self.shooter.intakeNote()
 
 
+    def testPeriodic(self) -> None:
+        self.swerve.test(self.leftStick.getTrigger(), self.rightStick.getTrigger())
+
+
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (
             self.xspeedLimiter.calculate(
@@ -184,7 +188,7 @@ class MyRobot(wpilib.TimedRobot):
             * constants.kMaxAngularSpeed
         )
 
-        rot = self.headingController.update(xSpeed, ySpeed, rot)
+        # rot = self.headingController.update(xSpeed, ySpeed, rot)
 
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)
         wpilib.SmartDashboard.putNumber("Y Speed", ySpeed)

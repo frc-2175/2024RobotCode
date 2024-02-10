@@ -160,3 +160,9 @@ class Drivetrain:
             self.backLeft.getError(),
             self.backRight.getError(),
         ]
+
+    def test(self, runDrive, runSteer):
+        self.frontLeft.test(runDrive, runSteer)
+        self.frontRight.test(runDrive, runSteer)
+        self.backLeft.test(runDrive, runSteer)
+        self.backRight.test(runDrive, runSteer)

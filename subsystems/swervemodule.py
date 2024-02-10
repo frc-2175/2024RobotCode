@@ -162,3 +162,7 @@ class SwerveModule:
         steerError = self.targetedState.angle - wpimath.geometry.Rotation2d(self.steerEncoder.getPosition())
 
         return (driveError, steerError.radians())
+    
+    def test(self, runDrive, runSteer):
+        self.driveMotor.set(0.5 if runDrive else 0)
+        self.steerMotor.set(0.2 if runSteer else 0)

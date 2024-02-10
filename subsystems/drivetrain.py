@@ -102,6 +102,24 @@ class Drivetrain:
         self.backLeft.setDesiredState(swerveModuleStates[2])
         self.backRight.setDesiredState(swerveModuleStates[3])
 
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/frontLeft/speed", swerveModuleStates[0].speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/frontLeft/angle", swerveModuleStates[0].angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/frontRight/speed", swerveModuleStates[1].speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/frontRight/angle", swerveModuleStates[1].angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/backLeft/speed", swerveModuleStates[2].speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/backLeft/angle", swerveModuleStates[2].angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/backRight/speed", swerveModuleStates[3].speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleFAKE/backRight/angle", swerveModuleStates[3].angle.degrees())
+
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/frontLeft/speed", self.frontLeft.getState().speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/frontLeft/angle", self.frontLeft.getState().angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/frontRight/speed", self.frontRight.getState().speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/frontRight/angle", self.frontRight.getState().angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/backLeft/speed", self.backLeft.getState().speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/backLeft/angle", self.backLeft.getState().angle.degrees())
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/backRight/speed", self.backRight.getState().speed)
+        wpilib.SmartDashboard.putNumber("swerveModuleStates/backRight/angle", self.backRight.getState().angle.degrees())
+
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
         self.odometry.update(

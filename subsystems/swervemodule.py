@@ -13,8 +13,6 @@ import wpimath.trajectory
 import wpimath.units
 import rev
 
-import utils.math
-
 import constants
 
 driveP = 0.1
@@ -53,7 +51,6 @@ class SwerveModule:
         driveMotorId: int,
         steerMotorId: int,
         angularOffset: float,
-        usePID: bool,
     ) -> None:
         """Constructs a SwerveModule with a drive motor, steer motor, drive encoder and steer encoder.
 
@@ -63,21 +60,16 @@ class SwerveModule:
         self.driveMotor = rev.CANSparkMax(driveMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.steerMotor = rev.CANSparkMax(steerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.angularOffset = angularOffset
-        self.usePID = usePID
 
         self.driveEncoder = self.driveMotor.getEncoder()
         self.steerEncoder = self.steerMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
         self.steerEncoder.setInverted(True)
 
-        # self.drivePIDController = self.driveMotor.getPIDController()
-        # self.steerPIDController = self.steerMotor.getPIDController()
-        # self.steerPIDController.setPositionPIDWrappingEnabled(True)
-        # self.steerPIDController.setPositionPIDWrappingMaxInput(math.pi)
-        # self.steerPIDController.setPositionPIDWrappingMinInput(-math.pi)
-
-        self.drivePIDController = wpimath.controller.PIDController(driveP, driveI, driveD)
-        self.steerPIDController = wpimath.controller.PIDController(steerP, steerI, steerD)
-        self.steerPIDController.enableContinuousInput(-math.pi, math.pi)
+        self.drivePIDController = self.driveMotor.getPIDController()
+        self.steerPIDController = self.steerMotor.getPIDController()
+        self.steerPIDController.setPositionPIDWrappingEnabled(True)
+        self.steerPIDController.setPositionPIDWrappingMaxInput(math.pi)
+        self.steerPIDController.setPositionPIDWrappingMinInput(-math.pi)
 
         # Set the distance traveled per rotation for the drive motor.
         self.driveEncoder.setPositionConversionFactor(
@@ -93,7 +85,7 @@ class SwerveModule:
         self.steerEncoder.setPositionConversionFactor(math.tau)
 
         # Set the steering PID controller to drive using position(angle) instead of velocity/
-        self.steerPIDController.setSetpoint(0)
+        self.steerPIDController.setReference(0, rev.CANSparkMax.ControlType.kPosition)
 
     def getState(self) -> wpimath.kinematics.SwerveModuleState:
         """Returns the current state of the module.
@@ -119,10 +111,14 @@ class SwerveModule:
         self.drivePIDController.setP(driveP)
         self.drivePIDController.setI(driveI)
         self.drivePIDController.setD(driveD)
+        self.drivePIDController.setFF(driveFF)
+        self.drivePIDController.setOutputRange(driveOutputMin, driveOutputMax)
 
         self.steerPIDController.setP(steerP)
         self.steerPIDController.setI(steerI)
         self.steerPIDController.setD(steerD)
+        self.steerPIDController.setFF(steerFF)
+        self.steerPIDController.setOutputRange(driveOutputMin, driveOutputMax)
 
     def setDesiredState(
         self, desiredState: wpimath.kinematics.SwerveModuleState
@@ -148,21 +144,17 @@ class SwerveModule:
 
         self.targetedState = state
 
-        if self.usePID:
-            # Calculate the drive output from the drive PID controller.
-            self.drivePIDController.setSetpoint(state.speed)
+        # Calculate the drive output from the drive PID controller.
+        self.drivePIDController.setReference(
+            state.speed,
+            rev.CANSparkMax.ControlType.kVelocity,
+        )
 
-            # Calculate the steer motor output from the steer PID controller.
-            self.steerPIDController.setSetpoint(state.angle.radians())
-        else:
-            self.steerMotor.set(0.5)
-
-    def periodic(self):
-        steerOutput = utils.math.clamp(self.steerPIDController.calculate(self.steerEncoder.getPosition()), steerOutputMin, steerOutputMax)
-        driveOutput = utils.math.clamp(self.drivePIDController.calculate(self.driveEncoder.getVelocity()), driveOutputMin, driveOutputMax)
-
-        self.steerMotor.set(steerOutput)
-        self.driveMotor.set(driveOutput)
+        # Calculate the steer motor output from the steer PID controller.
+        self.steerPIDController.setReference(
+            state.angle.radians(),
+            rev.CANSparkMax.ControlType.kPosition,
+        )
         
     def getError(self) -> tuple[float, float]:
         driveError = self.driveEncoder.getVelocity()

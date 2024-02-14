@@ -22,10 +22,14 @@ class Shooter:
 
         self.shooterEncoder = self.shooterMotorLower.getEncoder()
 
-        self.shooterLowerPIDController = self.shooterMotorLower.getPIDController()
         self.shooterUpperPIDController = self.shooterMotorUpper.getPIDController()
+        self.shooterLowerPIDController = self.shooterMotorLower.getPIDController()
 
-        self.shooterUpperPIDController.setFF(0)
+        self.shooterUpperPIDController.setP(0.01)
+        self.shooterUpperPIDController.setFF(1/4000)
+
+        self.shooterLowerPIDController.setP(0.01)
+        self.shooterLowerPIDController.setFF(1/4000)
     
     def setShooterSpeedBoth(self, motorSpeed):
         self.shooterMotorLower.set(motorSpeed)

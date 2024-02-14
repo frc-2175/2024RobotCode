@@ -139,20 +139,23 @@ class MyRobot(wpilib.TimedRobot):
             self.arm.setArmPreset("intake")
             shooterPower = constants.kShooterPresets["intake"]
           
-        if self.gamePad.getRawAxis(2) > 0.5:
+        if self.gamePad.getRightBumper():
             self.shooter.setShooterSpeedBoth(shooterPower)
         else:
             self.shooter.setShooterSpeedBoth(0)
 
-        if self.gamePad.getRightTriggerAxis() > 0.5:
-            self.shooter.setIntakeSpeed(self.gamePad.getRightTriggerAxis())
-        elif self.gamePad.getLeftTriggerAxis() > 0.5:
-            self.shooter.setIntakeSpeed(-self.gamePad.getLeftTriggerAxis())
+        if self.gamePad.getLeftBumper():
+            self.shooter.setIntakeSpeed(-0.8)
         else:
-            self.shooter.setIntakeSpeed(0)
+        # if self.gamePad.getBackButton > 0.5:
+            self.shooter.setIntakeSpeed(wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1))
+        # elif self.gamePad.getLeftTriggerAxis() > 0.5:
+        #     self.shooter.setIntakeSpeed(-self.gamePad.getLeftTriggerAxis())
+        # else:
+        #     self.shooter.setIntakeSpeed(0)
 
-        if self.gamePad.getRightTriggerAxis() > 0.5:
-            self.shooter.intakeNote()
+        # if self.gamePad.getRightTriggerAxis() > 0.5:
+        #     self.shooter.intakeNote()
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:

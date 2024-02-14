@@ -1,13 +1,12 @@
 import rev
 import wpilib
+from wpilib import SmartDashboard
 import constants
 
 class Shooter:
-    def __init__(self, lowerShooterMotorId, upperShooterMotorId, intakeMotorId) -> None:
-        self.shooterMotorUpper = rev.CANSparkMax(upperShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
-        self.shooterMotorLower = rev.CANSparkMax(lowerShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
-
-        self.shooterMotorLower.follow(self.shooterMotorUpper, False)
+    def __init__(self, lowerMotorId, upperMotorId, intakeMotorId) -> None:
+        self.upperMotor = rev.CANSparkMax(upperMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.lowerMotor = rev.CANSparkMax(lowerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         self.colorSensor = rev.ColorSensorV3(wpilib.I2C.Port.kOnboard)
 
@@ -19,25 +18,29 @@ class Shooter:
 
         self.motorIntake.setInverted(True)
 
-        self.shooterMotorUpper.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
-        self.shooterMotorLower.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.upperMotor.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.lowerMotor.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
 
-        self.shooterEncoder = self.shooterMotorUpper.getEncoder()
+        self.upperEncoder = self.upperMotor.getEncoder()
+        self.lowerEncoder = self.lowerMotor.getEncoder()
 
-        self.shooterUpperPIDController = self.shooterMotorUpper.getPIDController()
-        self.shooterLowerPIDController = self.shooterMotorLower.getPIDController()
+        self.upperPIDController = self.upperMotor.getPIDController()
+        self.lowerPIDController = self.lowerMotor.getPIDController()
 
-        self.shooterUpperPIDController.setP(0.01)
-        self.shooterUpperPIDController.setFF(1/4000)
+        self.upperPIDController.setP(0.01)
+        self.upperPIDController.setFF(1/4000)
 
-        self.shooterLowerPIDController.setP(0.01)
-        self.shooterLowerPIDController.setFF(1/4000)
-    
-    def setShooterSpeedBoth(self, motorSpeed):
-        self.shooterMotorUpper.set(motorSpeed)
+        self.lowerPIDController.setP(0.01)
+        self.lowerPIDController.setFF(1/4000)
+
+        self.upperTarget = 0
+        self.lowerTarget = 0
     
     def setShooterSpeed(self, velocity):
-        self.shooterUpperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
+        self.upperTarget = velocity
+        self.lowerTarget = velocity
+        self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
+        self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
 
     def setIntakeSpeed(self, motorSpeed):
         self.motorIntake.set(motorSpeed * 0.5)
@@ -49,15 +52,8 @@ class Shooter:
         else:
             self.setIntakeSpeed(0)
 
-    def shootNote(self, velocity:int):
-        """Gets shooter up to speed, then outtakes note into shooter and shoots"""
-        # Check if shooter is within speed range
-        if velocity - constants.kShooterSpeedRange < self.shooterEncoder.getVelocity() < velocity + constants.kShooterSpeedRange:
-            # Outtake until note stops being detected
-            if self.colorSensor.getProximity() > constants.kShooterProximityThreshold:
-                self.setIntakeSpeed(0.5)
-            else:
-                self.setIntakeSpeed(0)
-                self.setShooterSpeed(0)
-        else:
-            self.setShooterSpeed(velocity)
+    def updateTelemetry(self):
+        SmartDashboard.putNumber("shooter/upperSpeed", self.upperEncoder.getVelocity())
+        SmartDashboard.putNumber("shooter/lowerSpeed", self.lowerEncoder.getVelocity())
+        SmartDashboard.putNumber("shooter/upperTarget", self.upperEncoder.getVelocity())
+        SmartDashboard.putNumber("shooter/lowerTarget", self.lowerEncoder.getVelocity())

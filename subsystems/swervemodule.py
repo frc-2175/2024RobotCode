@@ -87,13 +87,18 @@ class SwerveModule:
         # Set the steering PID controller to drive using position(angle) instead of velocity/
         self.steerPIDController.setReference(0, rev.CANSparkMax.ControlType.kPosition)
 
+        self.targetedState = wpimath.kinematics.SwerveModuleState(
+            self.driveEncoder.getVelocity(),
+            wpimath.geometry.Rotation2d(self.steerEncoder.getPosition()),
+        )
+
     def getState(self) -> wpimath.kinematics.SwerveModuleState:
         """Returns the current state of the module.
 
         :returns: The current state of the module.
         """
         return wpimath.kinematics.SwerveModuleState(
-            self.driveEncoder.getVelocity(),    
+            self.driveEncoder.getVelocity(),
             wpimath.geometry.Rotation2d(self.steerEncoder.getPosition()),
         )
 

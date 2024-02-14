@@ -13,17 +13,22 @@ import wpimath.geometry
 import wpimath.kinematics
 
 import constants
+
 import subsystems.swervemodule as swervemodule
 from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
+
 from utils.swerveheading import SwerveHeadingController
 import utils.math
 
+from wpilib import CameraServer
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
+        CameraServer.launch()
+
         self.swerve = Drivetrain()
 
         self.arm = Arm(30)
@@ -44,6 +49,7 @@ class MyRobot(wpilib.TimedRobot):
         self.headingController = SwerveHeadingController(self.swerve.gyro)
 
         self.swerve.gyro.reset()
+
     def robotPeriodic(self) -> None:
 
         #Log swerve module positions
@@ -86,9 +92,8 @@ class MyRobot(wpilib.TimedRobot):
             "steerOutputMax", swervemodule.steerOutputMax
         )
 
-        wpilib.SmartDashboard.putNumber("ArmAngle", self.arm.getArmAngle())
-        wpilib.SmartDashboard.putNumber("ArmSpeed", self.arm.getArmSpeed())
-
+        self.arm.updateTelemetry()
+        self.swerve.updateTelemetry()
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
@@ -138,9 +143,9 @@ class MyRobot(wpilib.TimedRobot):
             shooterPower = constants.kShooterPresets["intake"]
           
         if self.gamePad.getRightBumper():
-            self.shooter.setShooterSpeedBoth(shooterPower)
+            self.shooter.setShooterSpeed(shooterPower)
         else:
-            self.shooter.setShooterSpeedBoth(0)
+            self.shooter.setShooterSpeed(0)
 
         if self.gamePad.getLeftBumper():
             self.shooter.setIntakeSpeed(-0.8)

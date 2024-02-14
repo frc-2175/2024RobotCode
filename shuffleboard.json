@@ -172,6 +172,32 @@
                 }
               ]
             }
+          },
+          "0,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/ArmAngle",
+              "_title": "ArmAngle",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
+          },
+          "1,0": {
+            "size": [
+              1,
+              1
+            ],
+            "content": {
+              "_type": "Text View",
+              "_source0": "network_table:///SmartDashboard/ArmSpeed",
+              "_title": "ArmSpeed",
+              "_glyph": 148,
+              "_showGlyph": false
+            }
           }
         }
       }

@@ -1,6 +1,7 @@
 import rev
 import math
 import wpimath.filter
+from wpilib import SmartDashboard
 import constants
 
 class Arm:
@@ -43,3 +44,8 @@ class Arm:
     def setArmPreset(self, preset:str):
         """Set the arm to a preset angle (defined in constants.py)"""
         self.anglePIDController.setReference(constants.kArmPresets[preset], rev.CANSparkMax.ControlType.kPosition)
+
+    def updateTelemetry(self):
+        SmartDashboard.putNumber("arm/angle", self.getArmAngle())
+        SmartDashboard.putNumber("arm/speed", self.getArmSpeed())
+        SmartDashboard.putNumber("arm/target", self.targetAngle)

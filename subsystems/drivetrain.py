@@ -162,3 +162,5 @@ class Drivetrain:
             self.backLeft.targetedState, 
             self.backRight.targetedState,
         ])
+
+        SmartDashboard.putNumber("gyro", self.gyro.getYaw())

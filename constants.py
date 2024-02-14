@@ -26,8 +26,8 @@ kArmPresets = {
 }
 
 kShooterPresets = {
-    "intake": 0.5,
-    "low": 0.5,
-    "mid": 0.2,
-    "high": 0.5,
+    "intake": 3000,
+    "low": 3000,
+    "mid": 1200,
+    "high": 3000,
 }

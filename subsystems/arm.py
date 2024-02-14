@@ -9,7 +9,7 @@ class Arm:
         self.angleMotor = rev.CANSparkMax(angleMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.angleMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
         
-        self.angleMotor.setInverted(True)
+        self.angleMotor.setInverted(False)
 
         self.angleEncoder = self.angleMotor.getEncoder()
         self.anglePIDController = self.angleMotor.getPIDController()

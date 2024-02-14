@@ -27,7 +27,7 @@ from wpilib import CameraServer
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        CameraServer.launch()
+        # CameraServer.launch()
 
         self.swerve = Drivetrain()
 
@@ -91,11 +91,12 @@ class MyRobot(wpilib.TimedRobot):
         swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
             "steerOutputMax", swervemodule.steerOutputMax
         )
-
+        
         self.arm.updateTelemetry()
         self.swerve.updateTelemetry()
+        self.shooter.updateTelemetry()
 
-    def autonomousPeriodic(self) -> None:
+    def autonomousPeriodic(self) -> None: 
         self.driveWithJoystick(False)
 
     def teleopPeriodic(self) -> None:

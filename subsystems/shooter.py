@@ -4,8 +4,10 @@ import constants
 
 class Shooter:
     def __init__(self, lowerShooterMotorId, upperShooterMotorId, intakeMotorId) -> None:
-        self.shooterMotorLower = rev.CANSparkMax(lowerShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.shooterMotorUpper = rev.CANSparkMax(upperShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.shooterMotorLower = rev.CANSparkMax(lowerShooterMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
+
+        self.shooterMotorLower.follow(self.shooterMotorUpper, False)
 
         self.colorSensor = rev.ColorSensorV3(wpilib.I2C.Port.kOnboard)
 
@@ -17,29 +19,20 @@ class Shooter:
 
         self.motorIntake.setInverted(True)
 
-        self.shooterMotorLower.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.shooterMotorUpper.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
+        self.shooterMotorLower.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
 
-        self.shooterEncoder = self.shooterMotorLower.getEncoder()
+        self.shooterEncoder = self.shooterMotorUpper.getEncoder()
 
-        self.shooterLowerPIDController = self.shooterMotorLower.getPIDController()
         self.shooterUpperPIDController = self.shooterMotorUpper.getPIDController()
 
         self.shooterUpperPIDController.setFF(0)
     
     def setShooterSpeedBoth(self, motorSpeed):
-        self.shooterMotorLower.set(motorSpeed)
-        self.shooterMotorUpper.set(motorSpeed)
-
-    def setShooterSpeedLower(self, motorSpeed):
-        self.shooterMotorLower.set(motorSpeed)
-    
-    def setShooterSpeedUpper(self, motorSpeed):
         self.shooterMotorUpper.set(motorSpeed)
     
     def setShooterSpeed(self, velocity):
         self.shooterUpperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
-        self.shooterLowerPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
 
     def setIntakeSpeed(self, motorSpeed):
         self.motorIntake.set(motorSpeed * 0.5)
@@ -53,7 +46,6 @@ class Shooter:
 
     def shootNote(self, velocity:int):
         """Gets shooter up to speed, then outtakes note into shooter and shoots"""
-
         # Check if shooter is within speed range
         if velocity - constants.kShooterSpeedRange < self.shooterEncoder.getVelocity() < velocity + constants.kShooterSpeedRange:
             # Outtake until note stops being detected

@@ -89,8 +89,6 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("ArmAngle", self.arm.getArmAngle())
         wpilib.SmartDashboard.putNumber("ArmSpeed", self.arm.getArmSpeed())
 
-        self.arm.periodic()
-
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)

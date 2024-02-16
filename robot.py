@@ -113,6 +113,8 @@ class MyRobot(wpilib.TimedRobot):
             # profiler toggled off
             sys.setprofile(None)
             self.profiler.finalize()
+            with open("events.json", "w") as f:
+                self.profiler.write_raw_events(f)
             with open("profile.json", "w") as f:
                 self.profiler.write_speedscope(f)
         self.runProfiler = newRunProfiler

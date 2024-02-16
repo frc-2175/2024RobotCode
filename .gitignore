@@ -3,3 +3,4 @@ __pycache__/
 .venv/
 simgui*.json
 profile.json
+events.json

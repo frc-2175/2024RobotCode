@@ -12,10 +12,24 @@ class Profiler:
         self.frame_indices = {}
         self.frames = []
         self.frame_stack = []
+        self.raw_events = []
 
 
     def profile_func(self, frame: FrameType, event, arg):
         t = time.time_ns()
+
+        stack = []
+        f = frame
+        while f:
+            stack.append(f)
+            f = f.f_back
+
+        self.raw_events.append({
+            "t": t,
+            "stack": [self.frame_dict(f) for f in stack],
+            "event": event,
+            "arg": str(arg),
+        })
 
         if not self.initialized:
             # Add begin events for all frames in the stack
@@ -81,6 +95,10 @@ class Profiler:
             self.events.append(("C", self.end, self.frame_stack.pop()))
 
 
+    def write_raw_events(self, f: TextIO):
+        json.dump(self.raw_events, f)
+
+
     def write_speedscope(self, f: TextIO):
         self.finalize()
 
@@ -109,3 +127,13 @@ class Profiler:
             f.write(json.dumps(event[2]))
             f.write(r'}')
         f.write(r']}]}')
+
+
+    def frame_dict(self, f: FrameType):
+        return {
+            "f_code": {
+                "co_filename": f.f_code.co_filename,
+                "co_firstlineno": f.f_code.co_firstlineno,
+            },
+            "f_lineno": f.f_lineno,
+        }

@@ -29,7 +29,8 @@ class Arm:
 
         self.targetAngle = 0
 
-        self.angleMotor.setClosedLoopRampRate(1)
+
+        self.angleMotor.setClosedLoopRampRate(1/2)
 
     
     def getArmSpeed(self):
@@ -39,11 +40,15 @@ class Arm:
         return self.angleEncoder.getPosition()
     
     def setArmAngleDegrees(self, angle:float):
+        self.targetAngle = angle
         self.anglePIDController.setReference(angle, rev.CANSparkMax.ControlType.kPosition)
     
     def setArmPreset(self, preset:str):
         """Set the arm to a preset angle (defined in constants.py)"""
-        self.anglePIDController.setReference(constants.kArmPresets[preset], rev.CANSparkMax.ControlType.kPosition)
+        self.setArmAngleDegrees(constants.kArmPresets[preset])
+
+    def setIdleMode(self, mode: rev.CANSparkMax.IdleMode):
+        self.angleMotor.setIdleMode(mode)
 
     def updateTelemetry(self):
         SmartDashboard.putNumber("arm/angle", self.getArmAngle())

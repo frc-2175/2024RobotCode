@@ -61,9 +61,6 @@ class Drivetrain:
             ),
         )
 
-        self.statePublisher = ntcore.NetworkTableInstance.getDefault().getStructArrayTopic("/SmartDashboard/swerve/states", wpimath.kinematics.SwerveModuleState).publish()
-        self.targetPublisher = ntcore.NetworkTableInstance.getDefault().getStructArrayTopic("/SmartDashboard/swerve/targets", wpimath.kinematics.SwerveModuleState).publish()
-
     def updatePIDConfig(self) -> None:
         self.frontLeft.updatePIDConfig()
         self.frontRight.updatePIDConfig()
@@ -149,18 +146,18 @@ class Drivetrain:
         ]
     
     def updateTelemetry(self) -> None:
-        self.statePublisher.set([
-            self.frontLeft.getState(), 
-            self.frontRight.getState(), 
-            self.backLeft.getState(), 
-            self.backRight.getState(),
+        SmartDashboard.putNumberArray("swerve/state", [
+            self.frontLeft.getState().angle.radians() - math.pi / 2 - 0,  self.frontLeft.getState().speed,
+            self.frontRight.getState().angle.radians() - math.pi / 2 - math.pi / 2,  self.frontRight.getState().speed,
+            self.backLeft.getState().angle.radians() - math.pi / 2 - 3 * math.pi / 2,  self.backLeft.getState().speed,
+            self.backRight.getState().angle.radians() - math.pi / 2 - math.pi, self.backRight.getState().speed,
         ])
 
-        self.targetPublisher.set([
-            self.frontLeft.targetedState, 
-            self.frontRight.targetedState, 
-            self.backLeft.targetedState, 
-            self.backRight.targetedState,
+        SmartDashboard.putNumberArray("swerve/rawOut", [
+            self.frontLeft.driveMotor.getOutputCurrent(),
+            self.frontRight.driveMotor.getOutputCurrent(),
+            self.backLeft.driveMotor.getOutputCurrent(),
+            self.backRight.driveMotor.getOutputCurrent(),
         ])
 
-        SmartDashboard.putNumber("gyro", self.gyro.getYaw())
+        SmartDashboard.putNumber("gyro", self.gyro.getRotation2d().radians())

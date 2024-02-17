@@ -19,15 +19,15 @@ driveP = 0.1
 driveI = 0
 driveD = 0
 driveFF = 1 / constants.kMaxSpeed
-driveOutputMin = -0.5
-driveOutputMax = 0.5
+driveOutputMin = -1
+driveOutputMax = 1
 
 steerP = 1
 steerI = 0
 steerD = 0
 steerFF = 0
-steerOutputMin = -0.5
-steerOutputMax = 0.5
+steerOutputMin = -1
+steerOutputMax = 1
 
 wpilib.SmartDashboard.putNumber("driveP", driveP)
 wpilib.SmartDashboard.putNumber("driveI", driveI)
@@ -91,6 +91,8 @@ class SwerveModule:
             self.driveEncoder.getVelocity(),
             wpimath.geometry.Rotation2d(self.steerEncoder.getPosition()),
         )
+
+        self.driveMotor.setSmartCurrentLimit(40)
 
     def getState(self) -> wpimath.kinematics.SwerveModuleState:
         """Returns the current state of the module.

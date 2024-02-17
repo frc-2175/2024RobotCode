@@ -6,6 +6,11 @@
 #
 
 import wpilib
+import wpilib.event
+
+from wpilib import SmartDashboard
+
+import rev
 
 import wpimath
 import wpimath.filter
@@ -35,6 +40,8 @@ class MyRobot(wpilib.TimedRobot):
 
         self.shooter = Shooter(31, 32, 33)
 
+        self.armButton = wpilib.DigitalInput(0)
+
         self.leftStick = wpilib.Joystick(0)
         self.rightStick = wpilib.Joystick(1)
         self.gamePad = wpilib.XboxController(2)
@@ -49,55 +56,60 @@ class MyRobot(wpilib.TimedRobot):
         self.headingController = SwerveHeadingController(self.swerve.gyro)
 
         self.swerve.gyro.reset()
+        
+        self.armButtonPastState = False
 
     def robotPeriodic(self) -> None:
+        # swervemodule.driveP = wpilib.SmartDashboard.getNumber(
+        #     "driveP", swervemodule.driveP
+        # )
+        # swervemodule.driveI = wpilib.SmartDashboard.getNumber(
+        #     "driveI", swervemodule.driveI
+        # )
+        # swervemodule.driveD = wpilib.SmartDashboard.getNumber(
+        #     "driveD", swervemodule.driveD
+        # )
+        # swervemodule.driveFF = wpilib.SmartDashboard.getNumber(
+        #     "driveFF", swervemodule.driveFF
+        # )
+        # swervemodule.driveOutputMin = wpilib.SmartDashboard.getNumber(
+        #     "driveOutputMin", swervemodule.driveOutputMin
+        # )
+        # swervemodule.driveOutputMax = wpilib.SmartDashboard.getNumber(
+        #     "driveOutputMax", swervemodule.driveOutputMax
+        # )
 
-        #Log swerve module positions
-        #wpilib.SmartDashboard.putNumberArray("swerve", [self.swerve.frontLeft.getPosition().angle.degrees(), 0.5])
-        swervemodule.driveP = wpilib.SmartDashboard.getNumber(
-            "driveP", swervemodule.driveP
-        )
-        swervemodule.driveI = wpilib.SmartDashboard.getNumber(
-            "driveI", swervemodule.driveI
-        )
-        swervemodule.driveD = wpilib.SmartDashboard.getNumber(
-            "driveD", swervemodule.driveD
-        )
-        swervemodule.driveFF = wpilib.SmartDashboard.getNumber(
-            "driveFF", swervemodule.driveFF
-        )
-        swervemodule.driveOutputMin = wpilib.SmartDashboard.getNumber(
-            "driveOutputMin", swervemodule.driveOutputMin
-        )
-        swervemodule.driveOutputMax = wpilib.SmartDashboard.getNumber(
-            "driveOutputMax", swervemodule.driveOutputMax
-        )
-
-        swervemodule.steerP = wpilib.SmartDashboard.getNumber(
-            "steerP", swervemodule.steerP
-        )
-        swervemodule.steerI = wpilib.SmartDashboard.getNumber(
-            "steerI", swervemodule.steerI
-        )
-        swervemodule.steerD = wpilib.SmartDashboard.getNumber(
-            "steerD", swervemodule.steerD
-        )
-        swervemodule.steerFF = wpilib.SmartDashboard.getNumber(
-            "steerFF", swervemodule.steerFF
-        )
-        swervemodule.steerOutputMin = wpilib.SmartDashboard.getNumber(
-            "steerOutputMin", swervemodule.steerOutputMin
-        )
-        swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
-            "steerOutputMax", swervemodule.steerOutputMax
-        )
+        # swervemodule.steerP = wpilib.SmartDashboard.getNumber(
+        #     "steerP", swervemodule.steerP
+        # )
+        # swervemodule.steerI = wpilib.SmartDashboard.getNumber(
+        #     "steerI", swervemodule.steerI
+        # )
+        # swervemodule.steerD = wpilib.SmartDashboard.getNumber(
+        #     "steerD", swervemodule.steerD
+        # )
+        # swervemodule.steerFF = wpilib.SmartDashboard.getNumber(
+        #     "steerFF", swervemodule.steerFF
+        # )
+        # swervemodule.steerOutputMin = wpilib.SmartDashboard.getNumber(
+        #     "steerOutputMin", swervemodule.steerOutputMin
+        # )
+        # swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
+        #     "steerOutputMax", swervemodule.steerOutputMax
+        # )
         
         self.arm.updateTelemetry()
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
 
+    def autonomousInit(self) -> None:
+        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+
     def autonomousPeriodic(self) -> None: 
         self.driveWithJoystick(False)
+
+    def teleopInit(self) -> None:
+        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButtonPressed(8):
@@ -143,7 +155,7 @@ class MyRobot(wpilib.TimedRobot):
             self.arm.setArmPreset("intake")
             shooterPower = constants.kShooterPresets["intake"]
           
-        if self.gamePad.getRightBumper():
+        if self.gamePad.getRightBumper() or self.gamePad.getAButton() or self.gamePad.getYButton():
             self.shooter.setShooterSpeed(shooterPower)
         else:
             self.shooter.setShooterSpeed(0)
@@ -199,3 +211,14 @@ class MyRobot(wpilib.TimedRobot):
         
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
         
+    def disabledPeriodic(self) -> None:
+        SmartDashboard.putBoolean("arm/button", self.armButton.get())
+        SmartDashboard.putBoolean("arm/buttonOld", self.armButtonPastState)
+
+        if self.armButton.get() != self.armButtonPastState:
+            self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake if self.armButton.get() else rev.CANSparkMax.IdleMode.kCoast)
+            self.armButtonPastState = self.armButton.get()
+
+    def testPeriodic(self) -> None:
+        self.shooter.lowerMotor.set(1)
+        self.shooter.upperMotor.set(1)

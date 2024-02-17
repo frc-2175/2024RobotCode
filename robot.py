@@ -5,6 +5,7 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import os
 import sys
 
 import wpilib
@@ -58,7 +59,6 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putBoolean("runProfiler", self.runProfiler)
 
     def robotPeriodic(self) -> None:
-
         #Log swerve module positions
         #wpilib.SmartDashboard.putNumberArray("swerve", [self.swerve.frontLeft.getPosition().angle.degrees(), 0.5])
         swervemodule.driveP = wpilib.SmartDashboard.getNumber(
@@ -103,21 +103,10 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
 
+        self.profile()
+
     def autonomousPeriodic(self) -> None:
-        newRunProfiler = wpilib.SmartDashboard.getBoolean("runProfiler", False)
-        if not self.runProfiler and newRunProfiler:
-            # profiler toggled on
-            self.profiler = Profiler()
-            sys.setprofile(self.profiler.profile_func)
-        elif self.runProfiler and not newRunProfiler:
-            # profiler toggled off
-            sys.setprofile(None)
-            self.profiler.finalize()
-            with open("events.json", "w") as f:
-                self.profiler.write_raw_events(f)
-            with open("profile.json", "w") as f:
-                self.profiler.write_speedscope(f)
-        self.runProfiler = newRunProfiler
+        pass
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButtonPressed(8):
@@ -219,3 +208,22 @@ class MyRobot(wpilib.TimedRobot):
         
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
         
+
+    def profile(self):
+        newRunProfiler = wpilib.SmartDashboard.getBoolean("runProfiler", False)
+        if not self.runProfiler and newRunProfiler:
+            # profiler toggled on
+            print("Starting profile...")
+            self.profiler = Profiler()
+            sys.setprofile(self.profiler.profile_func)
+        elif self.runProfiler and not newRunProfiler:
+            # profiler toggled off
+            print("Ending profile.")
+            sys.setprofile(None)
+            self.profiler.finalize()
+            os.makedirs("/home/lvuser/profile", exist_ok=True)
+            with open("/home/lvuser/profile/events.json", "w") as f:
+                self.profiler.write_raw_events(f)
+            with open("/home/lvuser/profile/profile.json", "w") as f:
+                self.profiler.write_speedscope(f)
+        self.runProfiler = newRunProfiler

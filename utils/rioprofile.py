@@ -18,18 +18,23 @@ class Profiler:
     def profile_func(self, frame: FrameType, event, arg):
         t = time.time_ns()
 
-        stack = []
-        f = frame
-        while f:
-            stack.append(f)
-            f = f.f_back
+        # if len(self.raw_events) >= 1000:
+        #     return
 
-        self.raw_events.append({
-            "t": t,
-            "stack": [self.frame_dict(f) for f in stack],
-            "event": event,
-            "arg": str(arg),
-        })
+        # stack = []
+        # f = frame
+        # while f:
+        #     stack.append(f)
+        #     f = f.f_back
+
+        # self.raw_events.append({
+        #     "t": t,
+        #     "stack": [self.frame_dict(f) for f in stack],
+        #     "event": event,
+        #     "arg": str(arg),
+        # })
+
+        # return
 
         if not self.initialized:
             # Add begin events for all frames in the stack
@@ -137,3 +142,6 @@ class Profiler:
             },
             "f_lineno": f.f_lineno,
         }
+
+
+    def

@@ -103,13 +103,16 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.updateTelemetry()
 
     def autonomousInit(self) -> None:
-        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.autoTimer = wpilib.Timer()
+        self.autoTimer.start()
 
-    def autonomousPeriodic(self) -> None: 
-        self.driveWithJoystick(False)
+    def autonomousPeriodic(self) -> None:
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
 
-    def teleopInit(self) -> None:
-        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        if self.autoTimer.hasElapsed(4.0):
+            self.shooter.setIntakeSpeed(-0.8)
+
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButtonPressed(8):
@@ -218,6 +221,9 @@ class MyRobot(wpilib.TimedRobot):
         if self.armButton.get() != self.armButtonPastState:
             self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake if self.armButton.get() else rev.CANSparkMax.IdleMode.kCoast)
             self.armButtonPastState = self.armButton.get()
+
+    def disabledExit(self) -> None:
+        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
     def testPeriodic(self) -> None:
         self.shooter.lowerMotor.set(1)

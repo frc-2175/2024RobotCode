@@ -113,7 +113,6 @@ class MyRobot(wpilib.TimedRobot):
         if self.autoTimer.hasElapsed(4.0):
             self.shooter.setIntakeSpeed(-0.8)
 
-
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()

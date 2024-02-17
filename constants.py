@@ -20,7 +20,7 @@ kShooterSpeedRange = 100
 
 kArmPresets = {
     "intake": 0,
-    "low": 15,
+    "low": 17,
     "mid": 60,
     "high": 90
 }

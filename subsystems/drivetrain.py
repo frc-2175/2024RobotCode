@@ -152,6 +152,13 @@ class Drivetrain:
             self.backLeft.getState().angle.radians() - math.pi / 2 - 3 * math.pi / 2,  self.backLeft.getState().speed,
             self.backRight.getState().angle.radians() - math.pi / 2 - math.pi, self.backRight.getState().speed,
         ])
+        
+        SmartDashboard.putNumberArray("swerve/target", [
+            self.frontLeft.targetedState.angle.radians() - math.pi / 2 - 0,  self.frontLeft.targetedState.speed,
+            self.frontRight.targetedState.angle.radians() - math.pi / 2 - math.pi / 2,  self.frontRight.targetedState.speed,
+            self.backLeft.targetedState.angle.radians() - math.pi / 2 - 3 * math.pi / 2,  self.backLeft.targetedState.speed,
+            self.backRight.targetedState.angle.radians() - math.pi / 2 - math.pi, self.backRight.targetedState.speed,
+        ])
 
         SmartDashboard.putNumberArray("swerve/rawOut", [
             self.frontLeft.driveMotor.getOutputCurrent(),

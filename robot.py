@@ -16,6 +16,7 @@ import wpimath
 import wpimath.filter
 import wpimath.geometry
 import wpimath.kinematics
+import wpimath.units
 
 import constants
 
@@ -58,7 +59,7 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.gyro.reset()
         
         self.armButtonPastState = False
-
+        
     def robotPeriodic(self) -> None:
         # swervemodule.driveP = wpilib.SmartDashboard.getNumber(
         #     "driveP", swervemodule.driveP
@@ -205,6 +206,18 @@ class MyRobot(wpilib.TimedRobot):
             * constants.kMaxAngularSpeed
         )
 
+        if(self.leftStick.getRawButton(1)):
+            ampHeight = wpimath.units.meters(5.49275)
+            error = float(ampHeight) - float(self.swerve.getPose().y)
+        
+            ySpeed = error * 0.2
+
+            rot = 90
+            
+        if(self.leftStick.getRawButton(0) or self.rightStick.getRawButton(0)):
+            xSpeed /= 2
+            ySpeed /= 2
+        
         rot = self.headingController.update(xSpeed, ySpeed, rot)
 
         wpilib.SmartDashboard.putNumber("X Speed", xSpeed)
@@ -212,6 +225,7 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("Rotation Speed", rot)
         
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+        
         
     def disabledPeriodic(self) -> None:
         SmartDashboard.putBoolean("arm/button", self.armButton.get())

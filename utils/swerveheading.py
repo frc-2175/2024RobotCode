@@ -1,5 +1,6 @@
 
 from enum import Enum
+import math
 import navx
 import wpimath.controller
 import wpilib
@@ -16,11 +17,11 @@ class SwerveHeadingController:
         self.state = SwerveHeadingState.OFF
         self.shouldMaintain = False
         self.goal = self.gyro.getYaw()
-        self.PID = wpimath.controller.PIDController(1 / 45, 0, 0)
+        self.PID = wpimath.controller.PIDController(1 / 15, 0, 0)
         self.PID.enableContinuousInput(-180, 180)
 
     def update(self, xSpeed: float, ySpeed: float, rot: float) -> float:
-        bot_turning = rot != 0
+        bot_turning = math.fabs(rot) > 0.1
         bot_translating = xSpeed != 0 or ySpeed != 0
         shouldChangeToMaintain = not bot_turning and bot_translating
 

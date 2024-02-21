@@ -25,7 +25,7 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 
-from utils.swerveheading import SwerveHeadingController
+from utils.swerveheading import SwerveHeadingController, SwerveHeadingState
 import utils.math
 
 from wpilib import CameraServer
@@ -33,7 +33,7 @@ from wpilib import CameraServer
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        # CameraServer.launch()
+        CameraServer.launch("camera.py")
 
         self.swerve = Drivetrain()
 
@@ -118,30 +118,8 @@ class MyRobot(wpilib.TimedRobot):
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
 
-        if self.leftStick.getRawButton(2):  # down
-            self.swerve.setAllState(
-                wpimath.kinematics.SwerveModuleState(
-                    0, wpimath.geometry.Rotation2d.fromDegrees(180)
-                )
-            )
-        elif self.leftStick.getRawButton(3):  # up
-            self.swerve.setAllState(
-                wpimath.kinematics.SwerveModuleState(
-                    0, wpimath.geometry.Rotation2d.fromDegrees(0)
-                )
-            )
-        elif self.leftStick.getRawButton(4):  # left
-            self.swerve.setAllState(
-                wpimath.kinematics.SwerveModuleState(
-                    0, wpimath.geometry.Rotation2d.fromDegrees(270)
-                )
-            )
-        elif self.leftStick.getRawButton(5):  # right
-            self.swerve.setAllState(
-                wpimath.kinematics.SwerveModuleState(
-                    0, wpimath.geometry.Rotation2d.fromDegrees(90)
-                )
-            )
+        if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):
+            self.driveWithJoystick(False)
         else:
             self.driveWithJoystick(True)
 
@@ -206,17 +184,18 @@ class MyRobot(wpilib.TimedRobot):
             * constants.kMaxAngularSpeed
         )
 
-        if(self.leftStick.getRawButton(1)):
-            ampHeight = wpimath.units.meters(5.49275)
-            error = float(ampHeight) - float(self.swerve.getPose().y)
+        # if(self.leftStick.getRawButton(2)):
+        #     ampHeight = wpimath.units.meters(5.49275)
+        #     error = float(ampHeight) - float(self.swerve.getPose().y)
         
-            ySpeed = error * 0.2
+        #     ySpeed = error * 0.2
 
-            rot = 90
+        #     rot = 90
             
-        if(self.leftStick.getRawButton(0) or self.rightStick.getRawButton(0)):
+        if(self.leftStick.getRawButton(1) or self.rightStick.getRawButton(1)):
             xSpeed /= 2
             ySpeed /= 2
+            rot /= 2
         
         rot = self.headingController.update(xSpeed, ySpeed, rot)
 

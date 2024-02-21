@@ -29,5 +29,5 @@ kShooterPresets = {
     "intake": 3000,
     "low": 3000,
     "mid": 1200,
-    "high": 3000,
+    "high": 1200,
 }

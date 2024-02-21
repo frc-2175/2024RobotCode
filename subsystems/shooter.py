@@ -76,13 +76,13 @@ class Shooter:
     def getRawColor(self):
         return self.colorSensor.getRawColor()
     
-    def detectColor(self, color):
+    # def detectColor(self, color):
        
-       detectColor = wpilib._wpilib.Color(color) #Test to figure out the ring color
+    #    detectColor = wpilib._wpilib.Color(color) #Test to figure out the ring color
 
-       self.colorMatch = rev.ColorMatch
+    #    self.colorMatch = rev.ColorMatch
 
-       return self.colorMatch.matchColor(detectColor)
+    #    return self.colorMatch.matchColor(detectColor)
 
 
 
@@ -111,5 +111,5 @@ class Shooter:
         SmartDashboard.putNumber("shooter/lowerTarget", self.lowerTarget)
         SmartDashboard.putNumber("shooter/proximity", self.proximity)
         SmartDashboard.putNumberArray("shooter/color", [self.color.red, self.color.green, self.color.blue])
-        SmartDashboard.putNumberArray("shooter/colorSensor/rawColor", [self.getRawColor().red, self.getRawColor().green, self.getRawColor().blue])
-        SmartDashboard.putNumber("shooter/colorSensor/proximity", self.getProximity())
+        # SmartDashboard.putNumberArray("shooter/colorSensor/rawColor", [self.getRawColor().red, self.getRawColor().green, self.getRawColor().blue])
+        # SmartDashboard.putNumber("shooter/colorSensor/proximity", self.getProximity())

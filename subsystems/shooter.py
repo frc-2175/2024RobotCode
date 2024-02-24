@@ -17,8 +17,6 @@ class Shooter:
         self.upperMotor = rev.CANSparkMax(upperMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.lowerMotor = rev.CANSparkMax(lowerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
-        # self.colorSensor = rev.ColorSensorV3(wpilib.I2C.Port.kOnboard)
-
         #Addresses REVlib issue #55: https://github.com/robotpy/robotpy-rev/issues/55
         if wpilib.RobotBase.isSimulation():
             self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
@@ -26,10 +24,6 @@ class Shooter:
             self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushed)
 
         self.motorIntake.setInverted(True)
-
-        self.colorSensor = rev.ColorSensorV3(wpilib.I2C.Port.kMXP)
-        self.colorSensor.configureProximitySensor(rev.ColorSensorV3.ProximityResolution.k8bit, rev.ColorSensorV3.ProximityMeasurementRate.k6ms)
-        self.colorSensor.configureColorSensor(rev.ColorSensorV3.ColorResolution.k13bit, rev.ColorSensorV3.ColorMeasurementRate.k25ms)
 
         self.upperMotor.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
         self.lowerMotor.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)
@@ -61,8 +55,8 @@ class Shooter:
         # this is gonna be dumb
         self.updateTimer = wpilib.Timer()
         self.updateTimer.start()
-        self.color = self.colorSensor.getColor()
-        self.proximity = self.colorSensor.getProximity()
+
+        self.noteIntaked = False
     
     def setShooterSpeed(self, velocity):
         self.upperTarget = velocity
@@ -73,8 +67,8 @@ class Shooter:
     def setIntakeSpeed(self, motorSpeed):
         self.motorIntake.set(motorSpeed * 0.5)
 
-    def getRawColor(self):
-        return self.colorSensor.getRawColor()
+    # def getRawColor(self):
+    #     return self.colorSensor.getRawColor()
     
     # def detectColor(self, color):
        
@@ -86,30 +80,31 @@ class Shooter:
 
 
 
-    def getProximity(self):
-        return self.colorSensor.getProximity()
+    # def getProximity(self):
+    #     return self.colorSensor.getProximity()
 
-    def intakeNote(self):
-        """Run intake until note is detected by the color sensor"""
-        if self.colorSensor.getProximity() > constants.kShooterProximityThreshold:
-            self.setIntakeSpeed(0.5)
-        else:
-            self.setIntakeSpeed(0)
-        return
+    # def intakeNote(self):
+    #     """Run intake until note is detected by the color sensor"""
+    #     if self.colorSensor.getProximity() > constants.kShooterProximityThreshold:
+    #         self.setIntakeSpeed(0)
+    #         self.noteIntaked = True
+
+    #     elif self.noteIntaked == False:
+    #         self.setIntakeSpeed(-0.5)
+    #     return
     
-    def updateValues(self):
-        if self.colorTimer.advanceIfElapsed(0.05):
-            self.color = self.colorSensor.getColor()
+    # def resetNoteState(self):
+    #     self.noteIntaked = False
+    
+    # def updateValues(self):
+    #     if self.colorTimer.advanceIfElapsed(0.05):
+    #         self.color = self.colorSensor.getColor()
 
-        if self.colorTimer.advanceIfElapsed(0.012):
-            self.proximity = self.colorSensor.getProximity()
+    #     if self.colorTimer.advanceIfElapsed(0.012):
+    #         self.proximity = self.colorSensor.getProximity()
 
     def updateTelemetry(self):
         SmartDashboard.putNumber("shooter/upperSpeed", self.upperEncoder.getVelocity())
         SmartDashboard.putNumber("shooter/lowerSpeed", self.lowerEncoder.getVelocity())
         SmartDashboard.putNumber("shooter/upperTarget", self.upperTarget)
         SmartDashboard.putNumber("shooter/lowerTarget", self.lowerTarget)
-        SmartDashboard.putNumber("shooter/proximity", self.proximity)
-        SmartDashboard.putNumberArray("shooter/color", [self.color.red, self.color.green, self.color.blue])
-        # SmartDashboard.putNumberArray("shooter/colorSensor/rawColor", [self.getRawColor().red, self.getRawColor().green, self.getRawColor().blue])
-        # SmartDashboard.putNumber("shooter/colorSensor/proximity", self.getProximity())

@@ -66,7 +66,10 @@ class SwerveModule:
         self.steerEncoder.setInverted(True)
 
         self.drivePIDController = self.driveMotor.getPIDController()
+        self.drivePIDController.setFeedbackDevice(self.driveEncoder)
+
         self.steerPIDController = self.steerMotor.getPIDController()
+        self.steerPIDController.setFeedbackDevice(self.steerEncoder)
         self.steerPIDController.setPositionPIDWrappingEnabled(True)
         self.steerPIDController.setPositionPIDWrappingMaxInput(math.pi)
         self.steerPIDController.setPositionPIDWrappingMinInput(-math.pi)

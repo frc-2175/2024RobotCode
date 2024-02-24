@@ -37,7 +37,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.swerve = Drivetrain()
 
-        self.arm = Arm(30)
+        self.arm = Arm(30, 35)
 
         self.shooter = Shooter(31, 32, 33)
 
@@ -153,6 +153,7 @@ class MyRobot(wpilib.TimedRobot):
 
         # if self.gamePad.getRightTriggerAxis() > 0.5:
         #     self.shooter.intakeNote()
+            
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:

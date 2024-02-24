@@ -15,7 +15,7 @@ kMaxSpeed = 0.8 * kMaxSpeedTheoretical # 2/3rds of max speed, poofs used 0.8
 kMaxAngularSpeedTheoretical = kMaxSpeedTheoretical / math.hypot(kTrackWidth / 2, kTrackWidth / 2)
 kMaxAngularSpeed = 0.5 * kMaxAngularSpeedTheoretical # rad/s, about 1/3rd of max speed, poofs used 0.5
 
-kShooterProximityThreshold = 100
+kShooterProximityThreshold = 90
 kShooterSpeedRange = 100
 
 kArmPresets = {
@@ -31,3 +31,5 @@ kShooterPresets = {
     "mid": 1200,
     "high": 1200,
 }
+
+kArmOffset = 235.6

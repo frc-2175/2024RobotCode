@@ -5,14 +5,18 @@ from wpilib import SmartDashboard
 import constants
 
 class Arm:
-    def __init__(self, angleMotorId) -> None:
+    def __init__(self, angleMotorId, followerMotorId) -> None:
         self.angleMotor = rev.CANSparkMax(angleMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.angleMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.followerMotor = rev.CANSparkMax(followerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
+        self.followerMotor.follow(self.angleMotor, True)
         
         self.angleMotor.setInverted(False)
 
         self.angleEncoder = self.angleMotor.getEncoder()
         self.anglePIDController = self.angleMotor.getPIDController()
+        self.anglePIDController.setFeedbackDevice(self.angleEncoder)
+        self.anglePIDController.setPositionPIDWrappingEnabled(False)
 
         self.angleEncoder.setPositionConversionFactor(1 / 60 /  5 * 360)
         

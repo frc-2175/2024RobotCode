@@ -5,10 +5,12 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+import ntcore
 import wpilib
 import wpilib.event
 
 from wpilib import SmartDashboard
+import wpilib.shuffleboard
 
 import rev
 
@@ -24,16 +26,18 @@ import subsystems.swervemodule as swervemodule
 from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
+from subsystems.vision import Vision
 
 from utils.swerveheading import SwerveHeadingController, SwerveHeadingState
 import utils.math
 
-from wpilib import CameraServer
+
+
+field = wpilib.Field2d()
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        CameraServer.launch("camera.py")
 
         self.swerve = Drivetrain()
 
@@ -59,7 +63,9 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.gyro.reset()
         
         self.armButtonPastState = False
-        
+
+        self.vision = Vision()
+
     def robotPeriodic(self) -> None:
         # swervemodule.driveP = wpilib.SmartDashboard.getNumber(
         #     "driveP", swervemodule.driveP
@@ -98,10 +104,20 @@ class MyRobot(wpilib.TimedRobot):
         # swervemodule.steerOutputMax = wpilib.SmartDashboard.getNumber(
         #     "steerOutputMax", swervemodule.steerOutputMax
         # )
+
+        field.getObject("origin").setPose(wpimath.geometry.Pose2d())
+        poses = self.vision.update()
+        if len(poses) == 1:
+            # field.setRobotPose(poses[0][0])
+            field.getObject("tag")
+        self.swerve.updateVision(poses)
+        self.swerve.updateOdometry()
+        field.setRobotPose(self.swerve.getPose())
         
         self.arm.updateTelemetry()
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
+        SmartDashboard.putData(field)
 
     def autonomousInit(self) -> None:
         self.autoTimer = wpilib.Timer()

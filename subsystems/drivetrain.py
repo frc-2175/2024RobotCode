@@ -8,6 +8,7 @@ import math
 import ntcore
 import wpilib
 from wpilib import SmartDashboard
+import wpimath.estimator
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.units
@@ -50,7 +51,7 @@ class Drivetrain:
             self.backRightLocation,
         )
 
-        self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
+        self.odometry = wpimath.estimator.SwerveDrive4PoseEstimator(
             self.kinematics,
             self.gyro.getRotation2d(),
             (
@@ -59,6 +60,7 @@ class Drivetrain:
                 self.backLeft.getPosition(),
                 self.backRight.getPosition(),
             ),
+            wpimath.geometry.Pose2d(),
         )
 
     def updatePIDConfig(self) -> None:
@@ -116,6 +118,10 @@ class Drivetrain:
             ),
         )
 
+    def updateVision(self, poses: list[tuple[wpimath.geometry.Pose2d, float]]) -> None:
+        for (pose, timestamp) in poses:
+            self.odometry.addVisionMeasurement(pose, timestamp)
+
     def resetOdometry(self, pose: wpimath.geometry.Pose2d) -> None:
         self.odometry.resetPosition(
             self.gyro.getRotation2d(),
@@ -129,7 +135,7 @@ class Drivetrain:
         )
 
     def getPose(self) -> wpimath.geometry.Pose2d:
-        return self.odometry.getPose()
+        return self.odometry.getEstimatedPosition()
 
     def setAllState(self, state: wpimath.kinematics.SwerveModuleState) -> None:
         self.frontLeft.setDesiredState(state)

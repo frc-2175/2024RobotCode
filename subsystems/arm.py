@@ -56,6 +56,7 @@ class Arm:
 
     def setIdleMode(self, mode: rev.CANSparkMax.IdleMode):
         self.angleMotor.setIdleMode(mode)
+        self.followerMotor.setIdleMode(mode)
 
     def updateTelemetry(self):
         SmartDashboard.putNumber("arm/angle", self.getArmAngle())

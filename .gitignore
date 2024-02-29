@@ -2,3 +2,5 @@ __pycache__/
 .pytest_cache/
 .venv/
 simgui*.json
+.Glass/glass.json
+.Glass/glass-window.json

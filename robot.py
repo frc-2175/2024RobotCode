@@ -31,14 +31,14 @@ from subsystems.vision import Vision
 from utils.swerveheading import SwerveHeadingController, SwerveHeadingState
 import utils.math
 
-
+from wpilib import CameraServer
 
 field = wpilib.Field2d()
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-
+        CameraServer.launch("camera.py")
         self.swerve = Drivetrain()
 
         self.arm = Arm(30, 35)

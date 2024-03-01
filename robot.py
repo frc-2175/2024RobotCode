@@ -67,6 +67,14 @@ class MyRobot(wpilib.TimedRobot):
 
         self.autoPID = wpimath.controller.PIDController(1 / 2, 0, 0)
 
+        self.selectedAuto = "None"
+        self.autoChooser = wpilib.SendableChooser()
+
+        self.autoChooser.setDefaultOption("None", self.doNothingAuto)
+        self.autoChooser.addOption("Two Note", self.twoNote)
+        self.autoChooser.addOption("One Note", self.shootNote)
+        SmartDashboard.putData("Auto selection", self.autoChooser)
+
     def robotPeriodic(self) -> None:
         # swervemodule.driveP = wpilib.SmartDashboard.getNumber(
         #     "driveP", swervemodule.driveP
@@ -123,8 +131,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousInit(self) -> None:
         self.autoTimer = wpilib.Timer()
         self.autoTimer.start()
-        # self.autoGenerator = self.driveToPoint(wpimath.geometry.Pose2d(10, 10, wpimath.geometry.Rotation2d()))
-        self.autoGenerator = self.twoNote()
+        self.autoGenerator = self.autoChooser.getSelected()
 
     def autonomousPeriodic(self) -> None:
         # self.arm.setArmPreset("low")
@@ -280,6 +287,9 @@ class MyRobot(wpilib.TimedRobot):
         print("Stopping...")
         yield from sleep(2)
         print("done!")
+
+    def doNothingAuto(self):
+        yield
     
     def shootNote(self):
         print("Shooting note")

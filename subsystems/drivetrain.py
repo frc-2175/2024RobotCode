@@ -17,6 +17,9 @@ import navx
 import constants
 import subsystems.swervemodule as swervemodule
 
+from utils.swerveheading import SwerveHeadingController
+
+
 
 class Drivetrain:
     """
@@ -63,6 +66,8 @@ class Drivetrain:
             wpimath.geometry.Pose2d(),
         )
 
+        self.headingController = SwerveHeadingController(self.gyro)
+
     def updatePIDConfig(self) -> None:
         self.frontLeft.updatePIDConfig()
         self.frontRight.updatePIDConfig()
@@ -85,6 +90,8 @@ class Drivetrain:
         :param fieldRelative: Whether the provided x and y speeds are relative to the field.
         :param periodSeconds: Time
         """
+
+        rot = self.headingController.update(xSpeed, ySpeed, rot)
 
         swerveModuleStates = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(
@@ -136,6 +143,7 @@ class Drivetrain:
 
     def getPose(self) -> wpimath.geometry.Pose2d:
         return self.odometry.getEstimatedPosition()
+
 
     def setAllState(self, state: wpimath.kinematics.SwerveModuleState) -> None:
         self.frontLeft.setDesiredState(state)

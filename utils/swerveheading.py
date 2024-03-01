@@ -4,6 +4,7 @@ import math
 import navx
 import wpimath.controller
 import wpilib
+from wpimath.geometry import Rotation2d
 
 class SwerveHeadingState(Enum):
     OFF = 0
@@ -39,3 +40,6 @@ class SwerveHeadingController:
             return rot
         else:
             return self.PID.calculate(self.gyro.getYaw())
+        
+    def setGoal(self, goal: Rotation2d): # because navX is clockwise positive, we have to negate it
+        self.goal = -goal.degrees()

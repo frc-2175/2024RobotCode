@@ -81,6 +81,7 @@ class Drivetrain:
         rot: float,
         fieldRelative: bool,
         periodSeconds: float,
+        angle: wpimath.geometry.Rotation2d | None = None
     ) -> None:
         """
         Method to drive the robot using joystick info.
@@ -90,6 +91,8 @@ class Drivetrain:
         :param fieldRelative: Whether the provided x and y speeds are relative to the field.
         :param periodSeconds: Time
         """
+        if angle is not None:
+            self.headingController.setGoal(angle)
 
         rot = self.headingController.update(xSpeed, ySpeed, rot)
 
@@ -123,6 +126,18 @@ class Drivetrain:
                 self.backLeft.getPosition(),
                 self.backRight.getPosition(),
             ),
+        )
+
+    def setPose(self, pose: wpimath.geometry.Pose2d) -> None:
+        self.odometry.resetPosition(
+            self.gyro.getRotation2d(),
+            (
+                self.frontLeft.getPosition(),
+                self.frontRight.getPosition(),
+                self.backLeft.getPosition(),
+                self.backRight.getPosition(),
+            ),
+            pose
         )
 
     def updateVision(self, poses: list[tuple[wpimath.geometry.Pose2d, float]]) -> None:

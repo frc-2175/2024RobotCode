@@ -65,7 +65,7 @@ class MyRobot(wpilib.TimedRobot):
 
         self.vision = Vision()
 
-        self.autoPID = wpimath.controller.PIDController(1 / 2, 0, 0)
+        self.autoPID = wpimath.controller.PIDController(1 / 2, 0, 0.05)
 
         self.selectedAuto = "None"
         self.autoChooser = wpilib.SendableChooser()
@@ -73,6 +73,7 @@ class MyRobot(wpilib.TimedRobot):
         self.autoChooser.setDefaultOption("None", self.doNothingAuto)
         self.autoChooser.addOption("Two Note", self.twoNote)
         self.autoChooser.addOption("One Note", self.shootNote)
+        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRight)
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -116,22 +117,25 @@ class MyRobot(wpilib.TimedRobot):
 
         field.getObject("origin").setPose(wpimath.geometry.Pose2d())
         poses = self.vision.update()
-        if len(poses) == 1:
-            # field.setRobotPose(poses[0][0])
-            field.getObject("tag")
         self.swerve.updateVision(poses)
         self.swerve.updateOdometry()
         field.setRobotPose(self.swerve.getPose())
+        field.getObject("drag")
         
         self.arm.updateTelemetry()
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
         SmartDashboard.putData(field)
+        
+        if self.leftStick.getRawButtonPressed(8):
+            self.swerve.gyro.reset()
 
     def autonomousInit(self) -> None:
+        self.swerve.gyro.reset()
+        self.swerve.setPose(wpimath.geometry.Pose2d())
         self.autoTimer = wpilib.Timer()
         self.autoTimer.start()
-        self.autoGenerator = self.autoChooser.getSelected()
+        self.autoGenerator = self.autoChooser.getSelected()()
 
     def autonomousPeriodic(self) -> None:
         # self.arm.setArmPreset("low")
@@ -143,9 +147,6 @@ class MyRobot(wpilib.TimedRobot):
         next(self.autoGenerator, None)
 
     def teleopPeriodic(self) -> None:
-        if self.leftStick.getRawButtonPressed(8):
-            self.swerve.gyro.reset()
-
         if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):
             self.driveWithJoystick(False)
         else:
@@ -255,6 +256,7 @@ class MyRobot(wpilib.TimedRobot):
     def driveToPoint(self, point: wpimath.geometry.Pose2d):
         while True:
             yield
+            
 
             direction = point.translation() - self.swerve.getPose().translation()
             error = direction.norm()
@@ -265,7 +267,7 @@ class MyRobot(wpilib.TimedRobot):
 
             pidOut = self.autoPID.calculate(-error) # Negated because normally you don't use error as your process variable
             
-            clampMag = 0.5
+            clampMag = 0.25
             if pidOut > clampMag:
                 pidOut = clampMag
             elif pidOut < 0:
@@ -274,12 +276,12 @@ class MyRobot(wpilib.TimedRobot):
             normalized = (direction / direction.norm())
             outputX = normalized.X() * pidOut * constants.kMaxSpeed
             outputY = normalized.Y() * pidOut * constants.kMaxSpeed
-            print(direction, error, pidOut, (outputX, outputY))
+            # print(direction, error, pidOut, (outputX, outputY))
 
             #TODO this should be field relative
-            self.swerve.drive(-outputY, outputX, 0, False, self.getPeriod())
+            self.swerve.drive(-outputY, outputX, 0, False, self.getPeriod(), point.rotation())
 
-            print(self.swerve.getPose().translation())
+            # print(self.swerve.getPose().translation())
         
     def printAuto(self):
         print("Starting...")
@@ -295,7 +297,7 @@ class MyRobot(wpilib.TimedRobot):
         print("Shooting note")
         self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(1)
+        yield from sleep(3)
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)
@@ -324,6 +326,25 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setIntakeSpeed(0)
 
         yield from self.shootNote()
+
+    def twoNoteDriverRight(self):
+        yield from self.shootNote()
+        yield from sleep(1)
+        # # TODO: real poses
+        print("Driving to note")
+        self.prepareIntake()
+        yield from self.driveToPoint(wpimath.geometry.Pose2d(1.068, 1.331, wpimath.geometry.Rotation2d.fromDegrees(60)))
+        self.shooter.setIntakeSpeed(0)
+        print("Driving back to speaker")
+        yield from self.driveToPoint(wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d()))
+
+        print("Adjusting note")
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+
+        yield from self.shootNote()
+        
 
 def sleep(duration: float):
     t = wpilib.Timer()

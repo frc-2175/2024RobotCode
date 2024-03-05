@@ -19,10 +19,10 @@ kShooterProximityThreshold = 90
 kShooterSpeedRange = 100
 
 kArmPresets = {
-    "intake": 0,
-    "low": 17,
-    "mid": 60,
-    "high": 90
+    "intake": math.radians(2.8),
+    "low": math.radians(17),
+    "mid": math.radians(60),
+    "high": math.radians(90)
 }
 
 kShooterPresets = {

@@ -1,6 +1,7 @@
 import rev
 import math
 import wpimath.filter
+import wpimath.controller
 from wpilib import SmartDashboard
 import constants
 
@@ -10,6 +11,9 @@ class Arm:
         self.angleMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
         self.followerMotor = rev.CANSparkMax(followerId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.followerMotor.follow(self.angleMotor, True)
+        self.followerMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+
+        self.feedforward = wpimath.controller.ArmFeedforward(0, 0.34, 5.85, 0.02)
 
         self.angleMotor.setInverted(False)
 
@@ -18,22 +22,22 @@ class Arm:
         self.anglePIDController.setFeedbackDevice(self.angleEncoder)
 
         self.anglePIDController.setPositionPIDWrappingEnabled(True)
-        self.anglePIDController.setPositionPIDWrappingMaxInput(-180)
-        self.anglePIDController.setPositionPIDWrappingMinInput(180)
+        self.anglePIDController.setPositionPIDWrappingMaxInput(math.pi)
+        self.anglePIDController.setPositionPIDWrappingMinInput(-math.pi)
 
-        #self.angleEncoder.setPositionConversionFactor(1 / 60 /  5 * 360)
-        self.angleEncoder.setPositionConversionFactor(360)
+        #self.angleEncoder.setPositionConversionFactor(1 / 60 /  5 * math.tau)
+        self.angleEncoder.setPositionConversionFactor(math.tau)
 
         self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, True)
-        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, 90) 
+        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, math.radians(90)) 
 
         self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, True)
-        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, 2) 
+        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, math.radians(2)) 
 
         self.anglePIDController.setFF(0)
-        self.anglePIDController.setP(1/45)
+        self.anglePIDController.setP(1 / math.radians(45))
         self.anglePIDController.setI(0)
-        self.anglePIDController.setD(0.01)
+        self.anglePIDController.setD(1)
 
         self.setArmAngleDegrees(0)
 
@@ -48,7 +52,7 @@ class Arm:
     
     def setArmAngleDegrees(self, angle:float):
         self.targetAngle = angle
-        self.anglePIDController.setReference(angle, rev.CANSparkMax.ControlType.kPosition)
+        self.anglePIDController.setReference(self.targetAngle, rev.CANSparkMax.ControlType.kPosition)
     
     def setArmPreset(self, preset:str):
         """Set the arm to a preset angle (defined in constants.py)"""
@@ -57,6 +61,11 @@ class Arm:
     def setIdleMode(self, mode: rev.CANSparkMax.IdleMode):
         self.angleMotor.setIdleMode(mode)
         self.followerMotor.setIdleMode(mode)
+
+    def periodic(self):
+        feedforward = self.feedforward.calculate(self.angleEncoder.getPosition(), self.angleEncoder.getVelocity())
+        SmartDashboard.putNumber("arm/feedforward", feedforward)
+        self.anglePIDController.setReference(self.targetAngle, rev.CANSparkMax.ControlType.kPosition, pidSlot=0, arbFeedforward=feedforward)
 
     def updateTelemetry(self):
         SmartDashboard.putNumber("arm/angle", self.getArmAngle())

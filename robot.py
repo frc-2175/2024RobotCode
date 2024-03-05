@@ -183,6 +183,8 @@ class MyRobot(wpilib.TimedRobot):
         # if self.gamePad.getRightTriggerAxis() > 0.5:
         #     self.shooter.intakeNote()
             
+        self.arm.periodic()
+            
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
@@ -208,7 +210,7 @@ class MyRobot(wpilib.TimedRobot):
         rot = (
             self.rotLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(self.rightStick.getX(), 0.1)
+                    wpimath.applyDeadband(-self.rightStick.getX(), 0.1)
                 )
             )
             * constants.kMaxAngularSpeed
@@ -243,7 +245,7 @@ class MyRobot(wpilib.TimedRobot):
             self.armButtonPastState = self.armButton.get()
 
     def disabledExit(self) -> None:
-        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.arm.setIdleMode(rev.CANSparkMax.IdleMode.kCoast)
 
     def testPeriodic(self) -> None:
         self.shooter.lowerMotor.set(1)

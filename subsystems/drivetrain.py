@@ -28,22 +28,22 @@ class Drivetrain:
 
     def __init__(self) -> None:
         self.frontLeftLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(12.25)
-        )
-        self.frontRightLocation = wpimath.geometry.Translation2d(
             wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(12.25)
         )
-        self.backLeftLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(-12.25)
-        )
-        self.backRightLocation = wpimath.geometry.Translation2d(
+        self.frontRightLocation = wpimath.geometry.Translation2d(
             wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
         )
+        self.backLeftLocation = wpimath.geometry.Translation2d(
+            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(12.25)
+        )
+        self.backRightLocation = wpimath.geometry.Translation2d(
+            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(-12.25)
+        )
 
-        self.frontLeft = swervemodule.SwerveModule(25, 21, math.pi / 2)
-        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi)
-        self.backLeft = swervemodule.SwerveModule(26, 22, 0)
-        self.backRight = swervemodule.SwerveModule(27, 23, 3 * math.pi / 2)
+        self.backRight = swervemodule.SwerveModule(25, 21, math.pi / 2)
+        self.backLeft = swervemodule.SwerveModule(28, 24, math.pi)
+        self.frontRight = swervemodule.SwerveModule(26, 22, 0)
+        self.frontLeft = swervemodule.SwerveModule(27, 23, 3 * math.pi / 2)
 
         self.gyro = navx.AHRS.create_spi()
 
@@ -189,7 +189,7 @@ class Drivetrain:
             self.backRight.targetedState.angle.radians() - self.backRight.angularOffset, self.backRight.targetedState.speed,
         ])
 
-        SmartDashboard.putNumberArray("swerve/current", [
+        SmartDashboard.putNumberArray("swerve/rawOut", [
             self.frontLeft.driveMotor.getOutputCurrent(),
             self.frontRight.driveMotor.getOutputCurrent(),
             self.backLeft.driveMotor.getOutputCurrent(),

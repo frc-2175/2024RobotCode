@@ -114,7 +114,7 @@ class SwerveModule:
         """
         return wpimath.kinematics.SwerveModulePosition(
             self.driveEncoder.getPosition(),
-            wpimath.geometry.Rotation2d(self.steerEncoder.getPosition() - self.angularOffset - math.pi / 2),
+            wpimath.geometry.Rotation2d(self.steerEncoder.getPosition() - self.angularOffset),
         )
     
     def updatePIDConfig(self) -> None:

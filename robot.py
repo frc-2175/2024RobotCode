@@ -189,7 +189,7 @@ class MyRobot(wpilib.TimedRobot):
         xSpeed = (
             self.xspeedLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(self.leftStick.getX(), 0.1)
+                    wpimath.applyDeadband(-self.leftStick.getY(), 0.1)
                 )
             )
             * constants.kMaxSpeed
@@ -199,7 +199,7 @@ class MyRobot(wpilib.TimedRobot):
         ySpeed = (
             self.yspeedLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(-self.leftStick.getY(), 0.1)
+                    wpimath.applyDeadband(-self.leftStick.getX(), 0.1)
                 )
             )
             * constants.kMaxSpeed
@@ -279,7 +279,7 @@ class MyRobot(wpilib.TimedRobot):
             # print(direction, error, pidOut, (outputX, outputY))
 
             #TODO this should be field relative
-            self.swerve.drive(-outputY, outputX, 0, False, self.getPeriod(), point.rotation())
+            self.swerve.drive(outputX, outputY, 0, False, self.getPeriod(), point.rotation())
 
             # print(self.swerve.getPose().translation())
         

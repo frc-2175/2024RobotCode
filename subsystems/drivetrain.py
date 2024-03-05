@@ -40,10 +40,10 @@ class Drivetrain:
             wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
         )
 
-        self.frontLeft = swervemodule.SwerveModule(25, 21, 0)
-        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi / 2)
-        self.backLeft = swervemodule.SwerveModule(26, 22, 3 * math.pi / 2)
-        self.backRight = swervemodule.SwerveModule(27, 23, math.pi)
+        self.frontLeft = swervemodule.SwerveModule(25, 21, math.pi / 2)
+        self.frontRight = swervemodule.SwerveModule(28, 24, math.pi)
+        self.backLeft = swervemodule.SwerveModule(26, 22, 0)
+        self.backRight = swervemodule.SwerveModule(27, 23, 3 * math.pi / 2)
 
         self.gyro = navx.AHRS.create_spi()
 
@@ -176,20 +176,20 @@ class Drivetrain:
     
     def updateTelemetry(self) -> None:
         SmartDashboard.putNumberArray("swerve/state", [
-            self.frontLeft.getState().angle.radians() - math.pi / 2 - 0,  self.frontLeft.getState().speed,
-            self.frontRight.getState().angle.radians() - math.pi / 2 - math.pi / 2,  self.frontRight.getState().speed,
-            self.backLeft.getState().angle.radians() - math.pi / 2 - 3 * math.pi / 2,  self.backLeft.getState().speed,
-            self.backRight.getState().angle.radians() - math.pi / 2 - math.pi, self.backRight.getState().speed,
+            self.frontLeft.getState().angle.radians() - self.frontLeft.angularOffset,  self.frontLeft.getState().speed,
+            self.frontRight.getState().angle.radians() - self.frontRight.angularOffset,  self.frontRight.getState().speed,
+            self.backLeft.getState().angle.radians() - self.backLeft.angularOffset,  self.backLeft.getState().speed,
+            self.backRight.getState().angle.radians() - self.backRight.angularOffset, self.backRight.getState().speed,
         ])
         
         SmartDashboard.putNumberArray("swerve/target", [
-            self.frontLeft.targetedState.angle.radians() - math.pi / 2 - 0,  self.frontLeft.targetedState.speed,
-            self.frontRight.targetedState.angle.radians() - math.pi / 2 - math.pi / 2,  self.frontRight.targetedState.speed,
-            self.backLeft.targetedState.angle.radians() - math.pi / 2 - 3 * math.pi / 2,  self.backLeft.targetedState.speed,
-            self.backRight.targetedState.angle.radians() - math.pi / 2 - math.pi, self.backRight.targetedState.speed,
+            self.frontLeft.targetedState.angle.radians() - self.frontLeft.angularOffset,  self.frontLeft.targetedState.speed,
+            self.frontRight.targetedState.angle.radians() - self.frontRight.angularOffset,  self.frontRight.targetedState.speed,
+            self.backLeft.targetedState.angle.radians() - self.backLeft.angularOffset,  self.backLeft.targetedState.speed,
+            self.backRight.targetedState.angle.radians() - self.backRight.angularOffset, self.backRight.targetedState.speed,
         ])
 
-        SmartDashboard.putNumberArray("swerve/rawOut", [
+        SmartDashboard.putNumberArray("swerve/current", [
             self.frontLeft.driveMotor.getOutputCurrent(),
             self.frontRight.driveMotor.getOutputCurrent(),
             self.backLeft.driveMotor.getOutputCurrent(),

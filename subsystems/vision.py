@@ -3,6 +3,7 @@ import math
 import wpimath.units
 import wpimath.geometry
 from wpimath.geometry import Pose3d, Pose2d, Transform2d, Transform3d, Rotation3d, Quaternion, CoordinateSystem
+from wpimath.units import inchesToMeters
 import ntcore
 import wpiutil.wpistruct
 import robotpy_apriltag
@@ -28,7 +29,7 @@ class Vision:
         self.tag3d = inst.getStructTopic("tag3d", Pose3d).publish()
         self.publisher2 = inst.getStructTopic("foobar", Pose3d).publish()
 
-        self.cameraPose = Transform3d()
+        self.cameraPose = Transform3d(wpimath.geometry.Translation3d(inchesToMeters(-5), inchesToMeters(-12), inchesToMeters(10.15)), wpimath.geometry.Rotation3d(0, math.radians(-30), math.radians(180)))
     
     def update(self) -> list[tuple[Pose2d, float]]:
         values = self.subscriber.readQueue()
@@ -45,7 +46,7 @@ class Vision:
                 
                 detectionNWU = CoordinateSystem.convert(detection.transform, CoordinateSystem.EDN(), CoordinateSystem.NWU())
                 nwuInverted = Transform3d(detectionNWU.translation(), Rotation3d(0, 0, math.pi) + detectionNWU.rotation())
-                robotPose: Pose3d = tagPose.transformBy(nwuInverted.inverse())
+                robotPose: Pose3d = tagPose.transformBy(nwuInverted.inverse()).transformBy(self.cameraPose.inverse())
                 self.publisher.set(robotPose)
                 self.tag3d.set(Pose3d(detectionNWU.translation(), Rotation3d(0, 0, math.pi) + detectionNWU.rotation()))
                 self.publisher2.set(Pose3d(

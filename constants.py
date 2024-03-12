@@ -1,5 +1,6 @@
 import math
 import wpimath.units
+import wpimath.geometry
 
 kWheelDiameter = wpimath.units.inchesToMeters(3)
 kTrackWidth = wpimath.units.inchesToMeters(24.5)
@@ -33,3 +34,5 @@ kShooterPresets = {
 }
 
 kArmOffset = 235.6
+kShooterOffset = wpimath.geometry.Rotation2d.fromDegrees(30) # from CAD
+kArmHeight = wpimath.units.inchesToMeters(10.801276)

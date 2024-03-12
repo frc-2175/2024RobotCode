@@ -5,14 +5,18 @@
 #
 
 import math
-import ntcore
-import wpilib
 from wpilib import SmartDashboard
 import wpimath.estimator
 import wpimath.geometry
 import wpimath.kinematics
 import wpimath.units
 import navx
+from commands2 import Subsystem
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
+from wpilib import DriverStation
+import constants
+import math
 
 import constants
 import subsystems.swervemodule as swervemodule
@@ -21,7 +25,7 @@ from utils.swerveheading import SwerveHeadingController
 
 
 
-class Drivetrain:
+class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
@@ -67,6 +71,22 @@ class Drivetrain:
         )
 
         self.headingController = SwerveHeadingController(self.gyro)
+
+        AutoBuilder.configureHolonomic(
+            self.getPose, # Robot pose supplier
+            self.resetOdometry, # Method to reset odometry (will be called if your auto has a starting pose)
+            self.getChassisSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
+                PIDConstants(0.5, 0.0, 0.0), # Translation PID constants
+                PIDConstants(1/math.radians(15), 0.0, 0.0), # Rotation PID constants
+                constants.kMaxSpeed / 2, # Max module speed, in m/s
+                math.hypot(constants.kTrackWidth / 2, constants.kTrackWidth / 2), # Drive base radius in meters. Distance from robot center to furthest module.
+                ReplanningConfig() # Default path replanning config. See the API for the options here
+            ),
+            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
+            self # Reference to this subsystem to set requirements
+        )
 
     def updatePIDConfig(self) -> None:
         self.frontLeft.updatePIDConfig()
@@ -173,6 +193,24 @@ class Drivetrain:
             self.backLeft.getError(),
             self.backRight.getError(),
         ]
+    
+    def getChassisSpeeds(self) -> wpimath.kinematics.ChassisSpeeds:
+        """ROBOT RELATIVE"""
+        return self.kinematics.toChassisSpeeds((
+            self.frontLeft.getState(),
+            self.frontRight.getState(),
+            self.backLeft.getState(),
+            self.backRight.getState(),
+        ))
+
+    def driveRobotRelative(self, chassisSpeeds: wpimath.kinematics.ChassisSpeeds) -> None:
+        self.drive(chassisSpeeds.vx, chassisSpeeds.vy, chassisSpeeds.omega, False, 0.02)
+    
+    def shouldFlipPath(self):
+        # Boolean supplier that controls when the path will be mirrored for the red alliance
+        # This will flip the path being followed to the red side of the field.
+        # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
     
     def updateTelemetry(self) -> None:
         SmartDashboard.putNumberArray("swerve/state", [

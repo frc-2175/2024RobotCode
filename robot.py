@@ -22,17 +22,17 @@ import wpimath.units
 import wpimath.controller
 
 import constants
-
-import subsystems.swervemodule as swervemodule
 from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.vision import Vision
 
-from utils.coroutinecommand import CoroutineCommand
 import utils.math
 
 from wpilib import CameraServer
+
+
+from pathplannerlib.auto import PathPlannerAuto
 
 field = wpilib.Field2d()
 
@@ -145,6 +145,9 @@ class MyRobot(wpilib.TimedRobot):
         #     self.shooter.setIntakeSpeed(-0.8)
 
         next(self.autoGenerator, None)
+
+    def getAutonomousCommand(self):
+        return PathPlannerAuto('Example Auto')
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):

@@ -89,8 +89,10 @@ def commandify(func):
             def __init__(self) -> None:
                 super().__init__()
                 self.is_finished = False
-                r: "Robot" = args[0]  # type: ignore
-                self.addRequirements(r.subsystems)
+
+                # Modified from 4096. We don't care about requirements.
+                # r: "Robot" = args[0]  # type: ignore
+                # self.addRequirements(r.subsystems)
 
             def execute(self) -> None:
                 try:
@@ -103,9 +105,6 @@ def commandify(func):
 
             def __iter__(self):
                 return gen
-
-
-
 
         return C()
 

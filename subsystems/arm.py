@@ -1,3 +1,4 @@
+from commands2 import Subsystem
 import rev
 import math
 import wpimath.filter
@@ -5,7 +6,7 @@ import wpimath.controller
 from wpilib import SmartDashboard
 import constants
 
-class Arm:
+class Arm(Subsystem):
     def __init__(self, angleMotorId, followerId) -> None:
         self.angleMotor = rev.CANSparkMax(angleMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.angleMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
@@ -62,7 +63,7 @@ class Arm:
         self.angleMotor.setIdleMode(mode)
         self.followerMotor.setIdleMode(mode)
 
-    def periodic(self):
+    def periodic2175(self):
         feedforward = self.feedforward.calculate(self.angleEncoder.getPosition(), self.angleEncoder.getVelocity())
         SmartDashboard.putNumber("arm/feedforward", feedforward)
         self.anglePIDController.setReference(self.targetAngle, rev.CANSparkMax.ControlType.kPosition, pidSlot=0, arbFeedforward=feedforward)

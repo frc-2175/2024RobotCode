@@ -5,7 +5,7 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
-import ntcore
+import commands2
 import wpilib
 import wpilib.event
 
@@ -26,6 +26,7 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.vision import Vision
+from utils.coroutinecommand import commandify
 
 import utils.math
 
@@ -40,11 +41,18 @@ class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
         CameraServer.launch("camera.py")
+
+        # Command scheduler
+        self.scheduler = commands2.CommandScheduler.getInstance()
+
         self.swerve = Drivetrain()
-
         self.arm = Arm(30, 35)
-
         self.shooter = Shooter(31, 32, 33)
+        self.scheduler.registerSubsystem(
+            self.swerve,
+            self.arm,
+            self.shooter,
+        )
 
         self.armButton = wpilib.DigitalInput(0)
 
@@ -71,9 +79,9 @@ class MyRobot(wpilib.TimedRobot):
         self.autoChooser = wpilib.SendableChooser()
 
         self.autoChooser.setDefaultOption("None", self.doNothingAuto)
-        self.autoChooser.addOption("Two Note", self.twoNote)
+        self.autoChooser.addOption("Two Note", self.twoNoteAuto)
         self.autoChooser.addOption("One Note", self.shootNote)
-        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRight)
+        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto)
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -121,33 +129,37 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.updateOdometry()
         field.setRobotPose(self.swerve.getPose())
         field.getObject("drag")
-        
+
+        self.arm.periodic2175()
+        self.scheduler.run()
+
         self.arm.updateTelemetry()
         self.swerve.updateTelemetry()
         self.shooter.updateTelemetry()
         SmartDashboard.putData(field)
-        
+
+        # TODO: This should almost certainly move to teleopPeriodic.
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
 
     def autonomousInit(self) -> None:
+        self.scheduler.cancelAll()
         self.swerve.gyro.reset()
         self.swerve.setPose(wpimath.geometry.Pose2d())
-        self.autoTimer = wpilib.Timer()
-        self.autoTimer.start()
-        self.autoGenerator = self.autoChooser.getSelected()()
+
+        autoCommand = self.autoChooser.getSelected()()
+        self.scheduler.schedule(autoCommand)
 
     def autonomousPeriodic(self) -> None:
-        # self.arm.setArmPreset("low")
-        # self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-
-        # if self.autoTimer.hasElapsed(4.0):
-        #     self.shooter.setIntakeSpeed(-0.8)
-
-        next(self.autoGenerator, None)
+        # No code necessary. The CommandScheduler will continue to run the command
+        # scheduled by autonomousInit.
+        return
 
     def getAutonomousCommand(self):
         return PathPlannerAuto('Example Auto')
+
+    def teleopInit(self) -> None:
+        self.scheduler.cancelAll()
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):
@@ -185,9 +197,6 @@ class MyRobot(wpilib.TimedRobot):
 
         # if self.gamePad.getRightTriggerAxis() > 0.5:
         #     self.shooter.intakeNote()
-            
-        self.arm.periodic()
-            
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
@@ -237,7 +246,11 @@ class MyRobot(wpilib.TimedRobot):
         wpilib.SmartDashboard.putNumber("Rotation Speed", rot)
         
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
-        
+
+
+    def disabledInit(self) -> None:
+        self.scheduler.cancelAll()
+
         
     def disabledPeriodic(self) -> None:
         SmartDashboard.putBoolean("arm/button", self.armButton.get())
@@ -287,34 +300,21 @@ class MyRobot(wpilib.TimedRobot):
             self.swerve.drive(outputX, outputY, 0, False, self.getPeriod(), point.rotation())
 
             # print(self.swerve.getPose().translation())
-        
-    def printAuto(self):
-        print("Starting...")
-        yield from sleep(2)
-        print("Stopping...")
-        yield from sleep(2)
-        print("done!")
 
+    @commandify
     def doNothingAuto(self):
-        yield
-    
-    def shootNote(self):
-        print("Shooting note")
-        self.arm.setArmPreset("low")
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(3)
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(1)
-        self.shooter.setIntakeSpeed(0)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")
+        print("Doing nothing...")
+        yield from sleep(2)
+        print("Still doing nothing...")
+        yield from sleep(2)
+        print("Done doing nothing :)")
 
-    def prepareIntake(self):
-        self.arm.setArmPreset("intake")
-        self.shooter.setShooterSpeed(-100)
-        self.shooter.setIntakeSpeed(-0.8)
+    @commandify
+    def oneNoteAuto(self):
+        yield from self.shootNote()
 
-    def twoNote(self):
+    @commandify
+    def twoNoteAuto(self):
         yield from self.shootNote()
         yield from sleep(1)
         # # TODO: real poses
@@ -332,7 +332,8 @@ class MyRobot(wpilib.TimedRobot):
 
         yield from self.shootNote()
 
-    def twoNoteDriverRight(self):
+    @commandify
+    def twoNoteDriverRightAuto(self):
         yield from self.shootNote()
         yield from sleep(1)
         # # TODO: real poses
@@ -349,7 +350,23 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setIntakeSpeed(0)
 
         yield from self.shootNote()
-        
+
+    def shootNote(self):
+        print("Shooting note")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from sleep(3)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(1)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    def prepareIntake(self):
+        self.arm.setArmPreset("intake")
+        self.shooter.setShooterSpeed(-100)
+        self.shooter.setIntakeSpeed(-0.8)
+
 
 def sleep(duration: float):
     t = wpilib.Timer()

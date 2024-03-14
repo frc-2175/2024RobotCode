@@ -1,9 +1,10 @@
+from commands2 import Subsystem
 import rev
 import wpilib
 from wpilib import SmartDashboard
 import constants
 
-class Shooter:
+class Shooter(Subsystem):
     upperkP = 0
     upperkI = 0
     upperkFF = 1.05/5500

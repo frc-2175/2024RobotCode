@@ -80,7 +80,7 @@ class Drivetrain(Subsystem):
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(0.5, 0.0, 0.0), # Translation PID constants
                 PIDConstants(1/math.radians(15), 0.0, 0.0), # Rotation PID constants
-                constants.kMaxSpeed / 2, # Max module speed, in m/s
+                1, # Max module speed, in m/s
                 math.hypot(constants.kTrackWidth / 2, constants.kTrackWidth / 2), # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here
             ),
@@ -114,7 +114,7 @@ class Drivetrain(Subsystem):
         if angle is not None:
             self.headingController.setGoal(angle)
 
-        rot = self.headingController.update(xSpeed, ySpeed, rot)
+        # rot = self.headingController.update(xSpeed, ySpeed, rot)
 
         swerveModuleStates = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(

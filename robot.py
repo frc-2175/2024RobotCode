@@ -33,7 +33,7 @@ import utils.math
 from wpilib import CameraServer
 
 
-from pathplannerlib.auto import PathPlannerAuto
+from pathplannerlib.auto import PathPlannerAuto, AutoBuilder, PathPlannerPath
 
 field = wpilib.Field2d()
 
@@ -78,10 +78,11 @@ class MyRobot(wpilib.TimedRobot):
         self.selectedAuto = "None"
         self.autoChooser = wpilib.SendableChooser()
 
-        self.autoChooser.setDefaultOption("None", self.doNothingAuto)
-        self.autoChooser.addOption("Two Note", self.twoNoteAuto)
-        self.autoChooser.addOption("One Note", self.shootNote)
-        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto)
+        self.autoChooser.setDefaultOption("None", self.doNothingAuto())
+        self.autoChooser.addOption("Two Note", self.twoNoteAuto())
+        self.autoChooser.addOption("One Note", self.shootNote())
+        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
+        self.autoChooser.addOption("aslkjaslkfd", AutoBuilder.followPath(PathPlannerPath.fromPathFile('Example Path')))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -147,16 +148,13 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.gyro.reset()
         self.swerve.setPose(wpimath.geometry.Pose2d())
 
-        autoCommand = self.autoChooser.getSelected()()
+        autoCommand = self.autoChooser.getSelected()
         self.scheduler.schedule(autoCommand)
 
     def autonomousPeriodic(self) -> None:
         # No code necessary. The CommandScheduler will continue to run the command
         # scheduled by autonomousInit.
         return
-
-    def getAutonomousCommand(self):
-        return PathPlannerAuto('Example Auto')
 
     def teleopInit(self) -> None:
         self.scheduler.cancelAll()

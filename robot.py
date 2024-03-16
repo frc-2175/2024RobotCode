@@ -38,6 +38,8 @@ from wpilib import CameraServer
 
 from pathplannerlib.auto import PathPlannerAuto, AutoBuilder, PathPlannerPath, NamedCommands
 
+from utils.swerveheading import SwerveHeadingState
+
 field = wpilib.Field2d()
 
 class MyRobot(wpilib.TimedRobot):
@@ -59,7 +61,9 @@ class MyRobot(wpilib.TimedRobot):
 
         NamedCommands.registerCommand('shootNote', self.shootNote()) # type: ignore
         NamedCommands.registerCommand('shootNote2', self.shootNote2()) # type: ignore
+        NamedCommands.registerCommand('shootNote3', self.shootNote3()) # type: ignore
         NamedCommands.registerCommand('prepareIntake', self.prepareIntake()) # type: ignore
+        NamedCommands.registerCommand('prepareIntake2', self.prepareIntake2()) # type: ignore
         NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
         NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
 
@@ -70,7 +74,7 @@ class MyRobot(wpilib.TimedRobot):
         self.rightStick = wpilib.Joystick(1)
         self.gamePad = wpilib.XboxController(2)
 
-        # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
+        # Slew rate limiters to make joystick inputs more gentle
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(8)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(8)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(12)
@@ -92,7 +96,8 @@ class MyRobot(wpilib.TimedRobot):
         self.autoChooser.addOption("Two Note", self.twoNoteAuto())
         self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
         self.autoChooser.addOption("aslkjaslkfd", AutoBuilder.followPath(PathPlannerPath.fromPathFile('Example Path')))
-        self.autoChooser.addOption("Auto Test", PathPlannerAuto("New Auto"))
+        self.autoChooser.addOption("Auto Test", PathPlannerAuto("Two Note"))
+        self.autoChooser.addOption("Three Note", PathPlannerAuto("Three Note"))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -156,6 +161,7 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousInit(self) -> None:
         self.scheduler.cancelAll()
         self.swerve.gyro.reset()
+        self.swerve.headingController.setState(SwerveHeadingState.DISABLE)
 
         autoCommand = self.autoChooser.getSelected()
         self.scheduler.schedule(autoCommand)
@@ -166,6 +172,7 @@ class MyRobot(wpilib.TimedRobot):
         return
 
     def teleopInit(self) -> None:
+        self.swerve.headingController.setState(SwerveHeadingState.OFF)
         self.scheduler.cancelAll()
 
     def teleopPeriodic(self) -> None:
@@ -397,7 +404,31 @@ class MyRobot(wpilib.TimedRobot):
         self.arm.setArmPreset("intake")
 
     @commandify
+    def shootNote3(self):
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+        print("Shooting note")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from sleep(3)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(1)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    @commandify
     def prepareIntake(self):
+        print("preparing")
+        self.arm.setArmPreset("intake")
+        self.shooter.setShooterSpeed(-100)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield
+        print("done")
+
+    @commandify
+    def prepareIntake2(self):
         print("preparing")
         self.arm.setArmPreset("intake")
         self.shooter.setShooterSpeed(-100)

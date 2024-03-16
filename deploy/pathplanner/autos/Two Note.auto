@@ -1,0 +1,49 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3386144840268221,
+      "y": 5.565873600441298
+    },
+    "rotation": 0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "named",
+          "data": {
+            "name": "shootNote"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "prepareIntake"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Middle Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Middle Return"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shootNote2"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

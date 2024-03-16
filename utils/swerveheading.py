@@ -9,6 +9,7 @@ from wpimath.geometry import Rotation2d
 class SwerveHeadingState(Enum):
     OFF = 0
     MAINTAIN = 1
+    DISABLE = 2
 
 class SwerveHeadingController:
     state: SwerveHeadingState
@@ -23,6 +24,9 @@ class SwerveHeadingController:
         self.PID.enableContinuousInput(-math.pi, math.pi)
 
     def update(self, xSpeed: float, ySpeed: float, rot: float) -> float:
+        if self.state == SwerveHeadingState.DISABLE:
+            return rot
+        
         bot_turning = math.fabs(rot) > 0.1
         bot_translating = xSpeed != 0 or ySpeed != 0
         shouldChangeToMaintain = not bot_turning and bot_translating
@@ -44,3 +48,6 @@ class SwerveHeadingController:
         
     def setGoal(self, goal: Rotation2d): # because navX is clockwise positive, we have to negate it
         self.goal = goal
+
+    def setState(self, state: SwerveHeadingState):
+        self.state = state

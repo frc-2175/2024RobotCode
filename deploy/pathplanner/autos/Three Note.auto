@@ -32,13 +32,37 @@
         {
           "type": "path",
           "data": {
-            "pathName": "New Path"
+            "pathName": "Middle Return"
           }
         },
         {
           "type": "named",
           "data": {
             "name": "shootNote2"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "prepareIntake2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Top Note"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Top Note Return"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shootNote3"
           }
         }
       ]

@@ -60,7 +60,10 @@ class MyRobot(wpilib.TimedRobot):
         )
 
         NamedCommands.registerCommand('shootNote', self.shootNote()) # type: ignore
+        NamedCommands.registerCommand('shootNote2', self.shootNote2()) # type: ignore
+        NamedCommands.registerCommand('shootNote3', self.shootNote3()) # type: ignore
         NamedCommands.registerCommand('prepareIntake', self.prepareIntake()) # type: ignore
+        NamedCommands.registerCommand('prepareIntake2', self.prepareIntake2()) # type: ignore
         NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
         NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
 
@@ -92,7 +95,7 @@ class MyRobot(wpilib.TimedRobot):
         self.autoChooser.setDefaultOption("None", self.doNothingAuto())
         self.autoChooser.addOption("Two Note", self.twoNoteAuto())
         self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
-        self.autoChooser.addOption("aslkjaslkfd", AutoBuilder.followPath(PathPlannerPath.fromPathFile('Example Path')))
+        self.autoChooser.addOption("aslkjaslkfd",PathPlannerAuto("New Auto"))
         self.autoChooser.addOption("Auto Test", PathPlannerAuto("Two Note"))
         self.autoChooser.addOption("Three Note", PathPlannerAuto("Three Note"))
         SmartDashboard.putData("Auto selection", self.autoChooser)
@@ -386,7 +389,46 @@ class MyRobot(wpilib.TimedRobot):
         self.arm.setArmPreset("intake")
 
     @commandify
+    def shootNote2(self):
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+        print("Shooting note")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from sleep(3)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(1)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    @commandify
+    def shootNote3(self):
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+        print("Shooting note")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from sleep(3)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(1)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    @commandify
     def prepareIntake(self):
+        print("preparing")
+        self.arm.setArmPreset("intake")
+        self.shooter.setShooterSpeed(-100)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield
+        print("done")
+
+    @commandify
+    def prepareIntake2(self):
         print("preparing")
         self.arm.setArmPreset("intake")
         self.shooter.setShooterSpeed(-100)

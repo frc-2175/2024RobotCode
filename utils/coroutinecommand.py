@@ -86,20 +86,22 @@ class CoroutineCommand(Command):
 def commandify(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        gen = func(*args, **kwargs)
-
         class C(Command):
             def __init__(self) -> None:
                 super().__init__()
+                self.gen = func(*args, **kwargs)
                 self.is_finished = False
 
                 # Modified from 4096. We don't care about requirements.
                 # r: "Robot" = args[0]  # type: ignore
                 # self.addRequirements(r.subsystems)
 
+            def initialize(self):
+                self.gen = func(*args, **kwargs)
+
             def execute(self) -> None:
                 try:
-                    next(gen)
+                    next(self.gen)
                 except StopIteration:
                     self.is_finished = True
 
@@ -107,7 +109,7 @@ def commandify(func):
                 return self.is_finished
 
             def __iter__(self):
-                return gen
+                return self.gen
 
         return C()
 

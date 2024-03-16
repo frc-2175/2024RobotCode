@@ -12,14 +12,15 @@ class SwerveHeadingState(Enum):
 
 class SwerveHeadingController:
     state: SwerveHeadingState
+    goal: Rotation2d
 
     def __init__(self, gyro: navx.AHRS) -> None:
         self.gyro = gyro
         self.state = SwerveHeadingState.OFF
         self.shouldMaintain = False
-        self.goal = self.gyro.getYaw()
-        self.PID = wpimath.controller.PIDController(1 / 15, 0, 0)
-        self.PID.enableContinuousInput(-180, 180)
+        self.goal = self.gyro.getRotation2d()
+        self.PID = wpimath.controller.PIDController(1 / math.radians(15), 0, 0)
+        self.PID.enableContinuousInput(-math.pi, math.pi)
 
     def update(self, xSpeed: float, ySpeed: float, rot: float) -> float:
         bot_turning = math.fabs(rot) > 0.1
@@ -31,15 +32,15 @@ class SwerveHeadingController:
 
         if shouldChangeToMaintain:
             self.state = SwerveHeadingState.MAINTAIN
-            self.PID.setSetpoint(self.goal)
+            self.PID.setSetpoint(self.goal.radians())
         else:
             self.state = SwerveHeadingState.OFF
-            self.goal = self.gyro.getYaw()
+            self.goal = self.gyro.getRotation2d()
         
         if self.state == SwerveHeadingState.OFF:
             return rot
         else:
-            return self.PID.calculate(self.gyro.getYaw())
+            return self.PID.calculate(self.gyro.getRotation2d().radians())
         
     def setGoal(self, goal: Rotation2d): # because navX is clockwise positive, we have to negate it
-        self.goal = -goal.degrees()
+        self.goal = goal

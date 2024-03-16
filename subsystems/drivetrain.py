@@ -32,16 +32,16 @@ class Drivetrain(Subsystem):
 
     def __init__(self) -> None:
         self.frontLeftLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(12.25)
+            wpimath.units.inchesToMeters(12.25-3), wpimath.units.inchesToMeters(12.25)
         )
         self.frontRightLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(12.25), wpimath.units.inchesToMeters(-12.25)
+            wpimath.units.inchesToMeters(12.25-3), wpimath.units.inchesToMeters(-12.25)
         )
         self.backLeftLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(12.25)
+            wpimath.units.inchesToMeters(-12.25-3), wpimath.units.inchesToMeters(12.25)
         )
         self.backRightLocation = wpimath.geometry.Translation2d(
-            wpimath.units.inchesToMeters(-12.25), wpimath.units.inchesToMeters(-12.25)
+            wpimath.units.inchesToMeters(-12.25-3), wpimath.units.inchesToMeters(-12.25)
         )
 
         self.backRight = swervemodule.SwerveModule(25, 21, math.pi / 2)
@@ -72,6 +72,7 @@ class Drivetrain(Subsystem):
 
         self.headingController = SwerveHeadingController(self.gyro)
 
+    def setupPathPlanner(self) -> None:
         AutoBuilder.configureHolonomic(
             self.getPose, # Robot pose supplier
             self.resetOdometry, # Method to reset odometry (will be called if your auto has a starting pose)
@@ -114,7 +115,7 @@ class Drivetrain(Subsystem):
         if angle is not None:
             self.headingController.setGoal(angle)
 
-        # rot = self.headingController.update(xSpeed, ySpeed, rot)
+        rot = self.headingController.update(xSpeed, ySpeed, rot)
 
         swerveModuleStates = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(

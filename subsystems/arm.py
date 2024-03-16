@@ -16,7 +16,7 @@ class Arm(Subsystem):
 
         self.feedforward = wpimath.controller.ArmFeedforward(0, 0.34, 5.85, 0.02)
 
-        self.angleMotor.setInverted(False)
+        self.angleMotor.setInverted(True)
 
         self.angleEncoder = self.angleMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
         self.anglePIDController = self.angleMotor.getPIDController()

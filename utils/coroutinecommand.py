@@ -1,7 +1,7 @@
 #stealing from 4096
 import inspect
 from functools import wraps
-from typing import Any, Callable, Generator, Iterable, List, Optional, Union
+from typing import Any, Callable, Generator, Iterable, List, Optional, Set, Union
 
 from commands2 import Command, Subsystem
 
@@ -65,6 +65,9 @@ class CoroutineCommand(Command):
                 next(self.coroutine)
         except StopIteration:
             self.is_finished = True
+
+    def getRequirements(self) -> Set[Subsystem]:
+        return super().getRequirements()
 
     def isFinished(self):
         return self.is_finished

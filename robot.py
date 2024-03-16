@@ -5,6 +5,9 @@
 # the WPILib BSD license file in the root directory of this project.
 #
 
+# This is to help vscode
+from typing import TYPE_CHECKING
+
 import commands2
 import wpilib
 import wpilib.event
@@ -26,21 +29,21 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.vision import Vision
-from utils.coroutinecommand import commandify
+from utils.coroutinecommand import commandify, CoroutineCommand
 
 import utils.math
 
 from wpilib import CameraServer
 
 
-from pathplannerlib.auto import PathPlannerAuto, AutoBuilder, PathPlannerPath
+from pathplannerlib.auto import PathPlannerAuto, AutoBuilder, PathPlannerPath, NamedCommands
 
 field = wpilib.Field2d()
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        CameraServer.launch("camera.py")
+        # CameraServer.launch("camera.py")
 
         # Command scheduler
         self.scheduler = commands2.CommandScheduler.getInstance()
@@ -54,6 +57,13 @@ class MyRobot(wpilib.TimedRobot):
             self.shooter,
         )
 
+        NamedCommands.registerCommand('shootNote', self.shootNote()) # type: ignore
+        NamedCommands.registerCommand('shootNote2', self.shootNote2()) # type: ignore
+        NamedCommands.registerCommand('prepareIntake', self.prepareIntake()) # type: ignore
+        NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
+        NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
+
+        self.swerve.setupPathPlanner()
         self.armButton = wpilib.DigitalInput(0)
 
         self.leftStick = wpilib.Joystick(0)
@@ -61,9 +71,9 @@ class MyRobot(wpilib.TimedRobot):
         self.gamePad = wpilib.XboxController(2)
 
         # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
-        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
+        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(8)
+        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(8)
+        self.rotLimiter = wpimath.filter.SlewRateLimiter(12)
 
         self.swerve.updatePIDConfig()
 
@@ -80,9 +90,9 @@ class MyRobot(wpilib.TimedRobot):
 
         self.autoChooser.setDefaultOption("None", self.doNothingAuto())
         self.autoChooser.addOption("Two Note", self.twoNoteAuto())
-        self.autoChooser.addOption("One Note", self.shootNote())
         self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
         self.autoChooser.addOption("aslkjaslkfd", AutoBuilder.followPath(PathPlannerPath.fromPathFile('Example Path')))
+        self.autoChooser.addOption("Auto Test", PathPlannerAuto("New Auto"))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -146,7 +156,6 @@ class MyRobot(wpilib.TimedRobot):
     def autonomousInit(self) -> None:
         self.scheduler.cancelAll()
         self.swerve.gyro.reset()
-        self.swerve.setPose(wpimath.geometry.Pose2d())
 
         autoCommand = self.autoChooser.getSelected()
         self.scheduler.schedule(autoCommand)
@@ -331,6 +340,16 @@ class MyRobot(wpilib.TimedRobot):
         yield from self.shootNote()
 
     @commandify
+    def reverseIntake(self):
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+
+    @commandify
+    def stopIntake(self):
+        self.shooter.setIntakeSpeed(0)
+        yield
+
+    @commandify
     def twoNoteDriverRightAuto(self):
         yield from self.shootNote()
         yield from sleep(1)
@@ -349,7 +368,9 @@ class MyRobot(wpilib.TimedRobot):
 
         yield from self.shootNote()
 
+    @commandify
     def shootNote(self):
+        self.shooter.setIntakeSpeed(0)
         print("Shooting note")
         self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
@@ -360,19 +381,35 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setShooterSpeed(0)
         self.arm.setArmPreset("intake")
 
+    @commandify
+    def shootNote2(self):
+        self.shooter.setIntakeSpeed(0.2)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+        print("Shooting note")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from sleep(3)
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(1)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    @commandify
     def prepareIntake(self):
+        print("preparing")
         self.arm.setArmPreset("intake")
         self.shooter.setShooterSpeed(-100)
         self.shooter.setIntakeSpeed(-0.8)
-
+        yield
+        print("done")
 
 def sleep(duration: float):
     t = wpilib.Timer()
     t.start()
     while not t.hasElapsed(duration):
         yield
-    return
-
 
 
         

@@ -58,7 +58,6 @@ class MyRobot(wpilib.TimedRobot):
         )
 
         NamedCommands.registerCommand('shootNote', self.shootNote()) # type: ignore
-        NamedCommands.registerCommand('shootNote2', self.shootNote2()) # type: ignore
         NamedCommands.registerCommand('prepareIntake', self.prepareIntake()) # type: ignore
         NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
         NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
@@ -370,21 +369,6 @@ class MyRobot(wpilib.TimedRobot):
 
     @commandify
     def shootNote(self):
-        self.shooter.setIntakeSpeed(0)
-        print("Shooting note")
-        self.arm.setArmPreset("low")
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(3)
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(1)
-        self.shooter.setIntakeSpeed(0)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")
-
-    @commandify
-    def shootNote2(self):
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
         self.shooter.setIntakeSpeed(0)
         print("Shooting note")
         self.arm.setArmPreset("low")

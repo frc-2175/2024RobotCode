@@ -28,12 +28,12 @@ class Arm(Subsystem):
 
         #self.angleEncoder.setPositionConversionFactor(1 / 60 /  5 * math.tau)
         self.angleEncoder.setPositionConversionFactor(math.tau)
-
-        self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, True)
+        
+        self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, False)
         self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kForward, math.radians(90)) 
 
-        self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, True)
-        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, math.radians(2)) 
+        self.angleMotor.enableSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, False)
+        self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, math.radians(0)) 
 
         self.anglePIDController.setFF(0)
         self.anglePIDController.setP(1 / math.radians(45))

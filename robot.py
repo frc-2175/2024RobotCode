@@ -66,6 +66,9 @@ class MyRobot(wpilib.TimedRobot):
         NamedCommands.registerCommand('prepareIntake2', self.prepareIntake2()) # type: ignore
         NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
         NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
+        NamedCommands.registerCommand('shootArm', self.shootArm()) # type: ignore
+        NamedCommands.registerCommand('spinShooter', self.spinShooter()) # type: ignore
+        NamedCommands.registerCommand('finishShot', self.finishShot()) # type: ignore
 
         self.swerve.setupPathPlanner()
         self.armButton = wpilib.DigitalInput(0)
@@ -194,7 +197,7 @@ class MyRobot(wpilib.TimedRobot):
             self.arm.setArmPreset("intake")
             shooterPower = constants.kShooterPresets["intake"]
           
-        if self.gamePad.getRightBumper() or self.gamePad.getAButton() or self.gamePad.getYButton():
+        if self.gamePad.getRightBumper() or self.gamePad.getAButton() or self.gamePad.getYButton() or self.gamePad.getXButton():
             self.shooter.setShooterSpeed(shooterPower)
         else:
             self.shooter.setShooterSpeed(0)
@@ -376,12 +379,33 @@ class MyRobot(wpilib.TimedRobot):
         yield from self.shootNote()
 
     @commandify
+    def shootArm(self):
+        self.arm.setArmPreset("low")
+        yield from sleep(1)
+
+    @commandify
+    def spinShooter(self):
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        while not self.shooter.atTarget():
+            yield
+
+    @commandify
+    def finishShot(self):
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(0.25)
+        self.shooter.setIntakeSpeed(0)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake")
+
+    @commandify
     def shootNote(self):
         self.shooter.setIntakeSpeed(0)
         print("Shooting note")
         self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(3)
+        while not self.shooter.atTarget():
+            yield
+        
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)
@@ -396,7 +420,8 @@ class MyRobot(wpilib.TimedRobot):
         print("Shooting note")
         self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(3)
+        while not self.shooter.atTarget():
+            yield
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)
@@ -411,7 +436,8 @@ class MyRobot(wpilib.TimedRobot):
         print("Shooting note")
         self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from sleep(3)
+        while not self.shooter.atTarget():
+            yield
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)

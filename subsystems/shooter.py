@@ -68,6 +68,11 @@ class Shooter(Subsystem):
     def setIntakeSpeed(self, motorSpeed):
         self.motorIntake.set(motorSpeed * 0.5)
 
+    def atTarget(self) -> bool:
+        upperError = abs(self.upperEncoder.getVelocity() - self.upperTarget)
+        lowerError = abs(self.lowerEncoder.getVelocity() - self.lowerTarget)
+        return upperError < constants.kShooterTolerance and lowerError < constants.kShooterTolerance
+
     # def getRawColor(self):
     #     return self.colorSensor.getRawColor()
     

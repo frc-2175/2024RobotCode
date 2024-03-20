@@ -18,18 +18,19 @@ kMaxAngularSpeed = 0.5 * kMaxAngularSpeedTheoretical # rad/s, about 1/3rd of max
 
 kShooterProximityThreshold = 90
 kShooterSpeedRange = 100
+kShooterTolerance = 500
 
 kArmPresets = {
-    "intake": math.radians(2.8),
+    "intake": math.radians(0),
     "low": math.radians(17),
-    "mid": math.radians(60),
+    "mid": math.radians(30),
     "high": math.radians(90)
 }
 
 kShooterPresets = {
     "intake": 3000,
     "low": 3000,
-    "mid": 1200,
+    "mid": 3000,
     "high": 1200,
 }
 

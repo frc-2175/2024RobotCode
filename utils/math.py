@@ -12,6 +12,9 @@ def signedPower(input: float, power: float = 2) -> float:
 
     return sign * abs(input) ** power
 
+def clamp(value: float, minimum: float, maximum: float) -> float:
+    return max(minimum, min(maximum, value))
+
 def shotAngle(distance: float) -> float:
     targetPose = Translation2d(inchesToMeters(9.055), inchesToMeters(80.515))
     robotPose = Translation2d(distance, 0)

@@ -1,0 +1,20 @@
+{
+  "name": "Rhapsody",
+  "rotations": [{"axis": "x", "degrees": 90}, {"axis": "z", "degrees": 90}],
+  "position": [0, 0, 0],
+  "cameras": [
+    {
+      "name": "vision",
+      "rotations": [{"axis": "z", "degrees": 180}, {"axis": "y", "degrees": 30}],
+      "position": [-0.3, -0.127, 0.26],
+      "resolution": [1280, 800],
+      "fov": 90
+    }
+  ],
+  "components": [
+    {
+      "zeroedRotations": [],
+      "zeroedPosition": [0, 0, 0]
+    }
+  ]
+} 

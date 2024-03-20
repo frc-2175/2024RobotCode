@@ -15,9 +15,6 @@ kMaxSpeed = 0.8 * kMaxSpeedTheoretical # 2/3rds of max speed, poofs used 0.8
 
 kMaxAngularSpeedTheoretical = kMaxSpeedTheoretical / math.hypot(kTrackWidth / 2, kTrackWidth / 2)
 kMaxAngularSpeed = 0.5 * kMaxAngularSpeedTheoretical # rad/s, about 1/3rd of max speed, poofs used 0.5
-
-kShooterProximityThreshold = 90
-kShooterSpeedRange = 100
 kShooterTolerance = 500
 
 kArmPresets = {
@@ -27,6 +24,11 @@ kArmPresets = {
     "high": math.radians(90)
 }
 
+kArmHeight = wpimath.units.inchesToMeters(10.801276)
+kArmReduction = (1 / 60) * (12 / 60)
+kArmLength = wpimath.units.inchesToMeters(26.5)
+
+
 kShooterPresets = {
     "intake": 3000,
     "low": 3000,
@@ -34,6 +36,7 @@ kShooterPresets = {
     "high": 1200,
 }
 
-kArmOffset = 235.6
+kShooterProximityThreshold = 90
+kShooterSpeedRange = 100
+kShooterTolerance = 100
 kShooterOffset = wpimath.geometry.Rotation2d.fromDegrees(30) # from CAD
-kArmHeight = wpimath.units.inchesToMeters(10.801276)

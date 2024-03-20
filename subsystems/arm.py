@@ -1,9 +1,16 @@
-from commands2 import Subsystem
-import rev
 import math
+
+import ntcore
 import wpimath.filter
 import wpimath.controller
+import wpilib
+from wpimath.units import inchesToMeters
 from wpilib import SmartDashboard
+from commands2 import Subsystem
+from wpimath.geometry import Pose3d, Rotation3d, Rotation2d
+
+import rev
+
 import constants
 
 class Arm(Subsystem):
@@ -18,7 +25,11 @@ class Arm(Subsystem):
 
         self.angleMotor.setInverted(True)
 
-        self.angleEncoder = self.angleMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
+        if wpilib.RobotBase.isSimulation():
+            self.angleEncoder = self.angleMotor.getAlternateEncoder(rev.SparkMaxAlternateEncoder.Type.kQuadrature, 1024)
+        else:
+            self.angleEncoder = self.angleMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
+
         self.anglePIDController = self.angleMotor.getPIDController()
         self.anglePIDController.setFeedbackDevice(self.angleEncoder)
 
@@ -43,6 +54,31 @@ class Arm(Subsystem):
         self.setArmAngleDegrees(0)
 
         self.angleMotor.setClosedLoopRampRate(1/2)
+
+        # Mechanism2D stuff
+
+        
+
+        # Create a Mechanism2d display of an Arm with a fixed ArmTower and moving Arm.
+        self.mech2d = wpilib.Mechanism2d(2, 2)
+        self.armPivot = self.mech2d.getRoot("ArmPivot", 1-inchesToMeters(8.797571), constants.kArmHeight)
+        self.armMech = self.armPivot.appendLigament(
+            "Arm",
+            inchesToMeters(26.5),
+            math.degrees(self.angleEncoder.getPosition()),
+            6,
+            wpilib.Color8Bit(wpilib.Color.kYellow),
+        )
+
+        # Put Mechanism to SmartDashboard
+        wpilib.SmartDashboard.putData("arm/mechanism", self.mech2d)
+
+
+
+
+        inst = ntcore.NetworkTableInstance.getDefault();
+    
+        self.componentTopic = inst.getStructTopic("SmartDashboard/arm/arm3d", Pose3d).publish()
 
     
     def getArmSpeed(self):
@@ -72,4 +108,5 @@ class Arm(Subsystem):
         SmartDashboard.putNumber("arm/angle", self.getArmAngle())
         SmartDashboard.putNumber("arm/speed", self.getArmSpeed())
         SmartDashboard.putNumber("arm/target", self.targetAngle)
-        SmartDashboard.putNumber("arm/measured", self.angleEncoder.getPosition())
+        self.armMech.setAngle(math.degrees(self.angleEncoder.getPosition()))
+        self.componentTopic.set(Pose3d(inchesToMeters(-8.797571), 0, inchesToMeters(10.801276), Rotation3d(math.pi/2-self.getArmAngle(), 0, math.pi/2)))

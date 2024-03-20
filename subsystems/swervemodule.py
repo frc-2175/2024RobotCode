@@ -59,7 +59,7 @@ class SwerveModule:
         """
         self.driveMotor = rev.CANSparkMax(driveMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.steerMotor = rev.CANSparkMax(steerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
-        self.angularOffset = angularOffset
+        self.angularOffset = angularOffset if wpilib.RobotBase.isReal() else 0
 
         self.driveEncoder = self.driveMotor.getEncoder()
         self.steerEncoder = self.steerMotor.getAbsoluteEncoder(rev.SparkAbsoluteEncoder.Type.kDutyCycle)
@@ -139,7 +139,7 @@ class SwerveModule:
         """
 
         desiredState.angle += wpimath.geometry.Rotation2d(self.angularOffset)
-
+        
         encoderRotation = wpimath.geometry.Rotation2d(self.steerEncoder.getPosition())
 
         # Optimize the reference state to avoid spinning further than 90 degrees
@@ -152,7 +152,7 @@ class SwerveModule:
         # driving.
         state.speed *= (state.angle - encoderRotation).cos()
 
-        self.targetedState = state
+        self.targetedState = desiredState
 
         # Calculate the drive output from the drive PID controller.
         self.drivePIDController.setReference(

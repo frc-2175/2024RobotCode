@@ -58,17 +58,13 @@ class MyRobot(wpilib.TimedRobot):
             self.arm,
             self.shooter,
         )
-
-        NamedCommands.registerCommand('shootNote', self.shootNote()) # type: ignore
-        NamedCommands.registerCommand('shootNote2', self.shootNote2()) # type: ignore
-        NamedCommands.registerCommand('shootNote3', self.shootNote3()) # type: ignore
-        NamedCommands.registerCommand('prepareIntake', self.prepareIntake()) # type: ignore
-        NamedCommands.registerCommand('prepareIntake2', self.prepareIntake2()) # type: ignore
-        NamedCommands.registerCommand('stopIntake', self.stopIntake()) # type: ignore
-        NamedCommands.registerCommand('reverseIntake', self.reverseIntake()) # type: ignore
-        NamedCommands.registerCommand('shootArm', self.shootArm()) # type: ignore
-        NamedCommands.registerCommand('spinShooter', self.spinShooter()) # type: ignore
-        NamedCommands.registerCommand('finishShot', self.finishShot()) # type: ignore
+        
+        NamedCommands.registerCommand('prepareIntake', self.prepareIntake().asProxy()) # type: ignore
+        NamedCommands.registerCommand('shootArm', self.shootArm().asProxy()) # type: ignore
+        NamedCommands.registerCommand('spinShooter', self.spinShooter().asProxy()) # type: ignore
+        NamedCommands.registerCommand('finishShot', self.finishShot().asProxy()) # type: ignore
+        NamedCommands.registerCommand('secondThing', self.secondThing().asProxy()) # type: ignore
+        NamedCommands.registerCommand('secondThing2', self.secondThing().asProxy()) # type: ignore
 
         self.swerve.setupPathPlanner()
         self.armButton = wpilib.DigitalInput(0)
@@ -98,7 +94,7 @@ class MyRobot(wpilib.TimedRobot):
         self.autoChooser.setDefaultOption("None", self.doNothingAuto())
         self.autoChooser.addOption("Two Note", self.twoNoteAuto())
         self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
-        self.autoChooser.addOption("aslkjaslkfd",PathPlannerAuto("New Auto"))
+        self.autoChooser.addOption("aslkjaslkfd", PathPlannerAuto("New Auto"))
         self.autoChooser.addOption("Auto Test", PathPlannerAuto("Two Note"))
         self.autoChooser.addOption("Three Note", PathPlannerAuto("Three Note"))
         SmartDashboard.putData("Auto selection", self.autoChooser)
@@ -147,7 +143,6 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.updateVision(poses)
         self.swerve.updateOdometry()
         field.setRobotPose(self.swerve.getPose())
-        field.getObject("drag")
 
         self.arm.periodic2175()
         self.scheduler.run()
@@ -411,38 +406,21 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setIntakeSpeed(0)
         self.shooter.setShooterSpeed(0)
         self.arm.setArmPreset("intake")
-
+        
     @commandify
-    def shootNote2(self):
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
+    def secondThing(self):
+        yield from sleep(0.1)
+        self.shootArm()
         self.shooter.setIntakeSpeed(0)
-        print("Shooting note")
-        self.arm.setArmPreset("low")
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from self.shootArm()
         while not self.shooter.atTarget():
             yield
+        
         self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(1)
-        self.shooter.setIntakeSpeed(0)
+        yield from sleep(0.5)
         self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")
-
-    @commandify
-    def shootNote3(self):
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
-        self.shooter.setIntakeSpeed(0)
-        print("Shooting note")
-        self.arm.setArmPreset("low")
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        while not self.shooter.atTarget():
-            yield
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(1)
-        self.shooter.setIntakeSpeed(0)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")
+        self.arm.setArmPreset("intake")        
 
     @commandify
     def prepareIntake(self):

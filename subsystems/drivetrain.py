@@ -24,6 +24,13 @@ import subsystems.swervemodule as swervemodule
 from utils.swerveheading import SwerveHeadingController
 
 
+    
+def shouldFlipPath():
+    # Boolean supplier that controls when the path will be mirrored for the red alliance
+    # This will flip the path being followed to the red side of the field.
+    # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+    return DriverStation.getAlliance() == DriverStation.Alliance.kRed
+    
 
 class Drivetrain(Subsystem):
     """
@@ -85,7 +92,7 @@ class Drivetrain(Subsystem):
                 math.hypot(constants.kTrackWidth / 2, constants.kTrackWidth / 2), # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here
             ),
-            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
+            shouldFlipPath, # Supplier to control path flipping based on alliance color
             self # Reference to this subsystem to set requirements
         )
 
@@ -206,13 +213,7 @@ class Drivetrain(Subsystem):
 
     def driveRobotRelative(self, chassisSpeeds: wpimath.kinematics.ChassisSpeeds) -> None:
         self.drive(chassisSpeeds.vx, chassisSpeeds.vy, chassisSpeeds.omega, False, 0.02)
-    
-    def shouldFlipPath(self):
-        # Boolean supplier that controls when the path will be mirrored for the red alliance
-        # This will flip the path being followed to the red side of the field.
-        # THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
-    
+
     def updateTelemetry(self) -> None:
         SmartDashboard.putNumberArray("swerve/state", [
             self.frontLeft.getState().angle.radians() - self.frontLeft.angularOffset,  self.frontLeft.getState().speed,

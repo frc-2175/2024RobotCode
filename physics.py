@@ -69,9 +69,6 @@ class Arm:
     def update(self, now: float, tm_diff: float) -> None:
         out = self.pid.calculate(self.encoderSim.getPosition(), self.robot.arm.targetAngle)
         vel = (self.encoderSim.getPosition() - self.oldPosition) / tm_diff
-        wpilib.SmartDashboard.putNumber("encoderPosition", self.encoderSim.getPosition())
-        wpilib.SmartDashboard.putNumber("encoderVelocity", self.encoderSim.getVelocity())
-        wpilib.SmartDashboard.putNumber("encoderVelocity2", vel)
 
 
         voltage = wpilib.RobotController.getInputVoltage()

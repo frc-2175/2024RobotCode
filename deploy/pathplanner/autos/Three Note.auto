@@ -3,7 +3,7 @@
   "startingPose": {
     "position": {
       "x": 1.3386144840268221,
-      "y": 5.565873600441298
+      "y": 5.55
     },
     "rotation": 0
   },
@@ -12,9 +12,28 @@
     "data": {
       "commands": [
         {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "named",
+                "data": {
+                  "name": "spinShooter"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "shootArm"
+                }
+              }
+            ]
+          }
+        },
+        {
           "type": "named",
           "data": {
-            "name": "shootNote"
+            "name": "finishShot"
           }
         },
         {
@@ -30,33 +49,28 @@
           }
         },
         {
-          "type": "path",
+          "type": "parallel",
           "data": {
-            "pathName": "Middle Return"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "shootNote2"
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "prepareIntake2"
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Middle Return"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "secondThing"
+                }
+              }
+            ]
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Top Note"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Top Note Return"
           }
         },
         {
@@ -70,63 +84,12 @@
                 }
               },
               {
-                "type": "sequential",
+                "type": "named",
                 "data": {
-                  "commands": [
-                    {
-                      "type": "wait",
-                      "data": {
-                        "waitTime": 0.25
-                      }
-                    },
-                    {
-                      "type": "parallel",
-                      "data": {
-                        "commands": [
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "reverseIntake"
-                            }
-                          },
-                          {
-                            "type": "named",
-                            "data": {
-                              "name": "shootArm"
-                            }
-                          },
-                          {
-                            "type": "sequential",
-                            "data": {
-                              "commands": [
-                                {
-                                  "type": "wait",
-                                  "data": {
-                                    "waitTime": 0.25
-                                  }
-                                },
-                                {
-                                  "type": "named",
-                                  "data": {
-                                    "name": "spinShooter"
-                                  }
-                                }
-                              ]
-                            }
-                          }
-                        ]
-                      }
-                    }
-                  ]
+                  "name": "secondThing2"
                 }
               }
             ]
-          }
-        },
-        {
-          "type": "named",
-          "data": {
-            "name": "finishShot"
           }
         }
       ]

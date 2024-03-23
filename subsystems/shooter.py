@@ -3,6 +3,7 @@ import rev
 import wpilib
 from wpilib import SmartDashboard
 import constants
+from utils.tunablenumber import TunableNumber
 
 class Shooter(Subsystem):
     upperkP = 0
@@ -41,12 +42,14 @@ class Shooter(Subsystem):
         self.lowerMotor.disableVoltageCompensation()
 
         self.upperPIDController.setP(self.upperkP)
-        self.lowerPIDController.setI(self.upperkI)
+        self.upperPIDController.setI(0.0000001)
+        self.upperPIDController.setIZone(constants.kShooterTolerance*2)
         self.upperPIDController.setFF(self.upperkFF)
 
         self.lowerPIDController.setP(0.00000)
-        self.lowerPIDController.setD(0.01)
-        self.lowerPIDController.setFF(0.95/5500)
+        self.lowerPIDController.setI(0.0000001)
+        self.lowerPIDController.setIZone(constants.kShooterTolerance*2)
+        self.lowerPIDController.setFF(1/5500)
 
         self.upperTarget = 0
         self.lowerTarget = 0
@@ -56,10 +59,16 @@ class Shooter(Subsystem):
         self.updateTimer.start()
 
         self.noteIntaked = False
+
+        self.intakeSensor = wpilib.AnalogInput(0)
     
     def setShooterSpeed(self, velocity):
         self.upperTarget = velocity
         self.lowerTarget = velocity
+        if velocity == 0:
+            self.upperMotor.stopMotor()
+            self.lowerMotor.stopMotor()
+            return
         self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
         self.lowerPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
 

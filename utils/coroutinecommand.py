@@ -1,101 +1,32 @@
 #stealing from 4096
-import inspect
 from functools import wraps
-from typing import Any, Callable, Generator, Iterable, List, Optional, Set, Union
+from typing import Callable, Iterator, ParamSpec, Set
 
-from commands2 import Command, Subsystem
+from commands2 import Command, CommandScheduler
+from commands2.subsystem import Subsystem
 
 
-def ensure_generator_function(
-    func: Union[Callable[..., None], Callable[..., Generator[None, None, None]]]
-) -> Callable[..., Generator[None, None, None]]:
-    if inspect.isgeneratorfunction(func):
-        return func  # type: ignore
+P = ParamSpec("P")
 
+def commandify(func: Callable[P, Iterator]) -> Callable[P, Command]:
     @wraps(func)
-    def wrapper(*args, **kwargs):
-        func(*args, **kwargs)
-        yield
-
-    return wrapper
-
-
-class CoroutineCommand(Command):
-    coroutine: Union[
-        Callable[..., None],
-        Callable[..., Generator[None, None, None]],
-        Generator[None, None, None],
-    ]
-    is_finished: bool
-
-    def __init__(
-        self,
-        coroutine: Union[
-            Callable[..., None],
-            Callable[..., Generator[None, None, None]],
-            Generator[None, None, None],
-        ],
-        interruptible: bool = True,
-    ) -> None:
-        super().__init__()
-        self.coroutineable = coroutine
-        self.coroutine = None  # type: ignore
-        self.is_finished = False
-        self.interruptible = (
-            Command.InterruptionBehavior.kCancelSelf
-            if interruptible
-            else Command.InterruptionBehavior.kCancelIncoming
-        )
-
-    def getInterruptionBehavior(self) -> Command.InterruptionBehavior:
-        return self.interruptible
-
-    def initialize(self) -> None:
-        self.coroutine = ensure_generator_function(self.coroutineable)()  # type: ignore
-        self.is_finished = False
-
-    def execute(self):
-        # __import__("code").interact(local={**locals(), **globals()})
-        # print(self.coroutine)
-        try:
-            if not self.is_finished:
-                if not inspect.isgenerator(self.coroutine):
-                    # __import__("code").interact(local={**locals(), **globals()})
-                    raise TypeError("This command was not properly initialized")
-                next(self.coroutine)
-        except StopIteration:
-            self.is_finished = True
-
-    def getRequirements(self) -> Set[Subsystem]:
-        return super().getRequirements()
-
-    def isFinished(self):
-        return self.is_finished
-
-    def end(self, interrupted: bool):
-        if not self.is_finished:
-            self.coroutine.close()
-
-    def __call__(self, *args, **kwargs) -> "CoroutineCommand":
-        if inspect.isgenerator(self.coroutine):
-            return self
-
-        return CoroutineCommand(ensure_generator_function(self.coroutine)(*args, **kwargs))  # type: ignore
-
-
-def commandify(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
+    def wrapper(*args: P.args, **kwargs: P.kwargs):
         gen = func(*args, **kwargs)
 
-        class C(Command):
+        class GeneratorCommand(Command):
             def __init__(self) -> None:
                 super().__init__()
+                self.initialized = False
                 self.is_finished = False
 
                 # Modified from 4096. We don't care about requirements.
                 # r: "Robot" = args[0]  # type: ignore
                 # self.addRequirements(r.subsystems)
+
+            def initialize(self):
+                if self.initialized:
+                    print("ERROR: Initialized a GeneratorCommand more than once! This will not work; instead, the generator will just resume partway through!")
+                self.initialized = True
 
             def execute(self) -> None:
                 try:
@@ -106,9 +37,44 @@ def commandify(func):
             def isFinished(self) -> bool:
                 return self.is_finished
 
+            def getName(self) -> str:
+                return func.__name__
+
             def __iter__(self):
                 return gen
 
-        return C()
+        return GeneratorCommand()
 
     return wrapper
+
+
+class RestartableCommand(Command):
+    def __init__(self, commandCreator: Callable[[], Command]):
+        self.make = commandCreator
+        self.cmd = self.make()
+        self.didEverInitialize = False
+        self.isActive = False
+
+    def initialize(self):
+        if self.isActive:
+            CommandScheduler.getInstance().cancel(self.cmd)
+        self.cmd = self.make()
+        if self.didEverInitialize:
+            finishedMsg = " (had not finished)" if self.isActive else ""
+            print(f"RestartableCommand: Restarting command {self.cmd.getName()}{finishedMsg}")
+        self.didEverInitialize = True
+        self.isActive = True
+        return self.cmd.initialize()
+
+    def execute(self):
+        return self.cmd.execute()
+
+    def isFinished(self) -> bool:
+        return self.cmd.isFinished()
+
+    def end(self, interrupted: bool):
+        self.isActive = False
+        return self.cmd.end(interrupted)
+
+    def getRequirements(self) -> Set[Subsystem]:
+        return self.cmd.getRequirements()

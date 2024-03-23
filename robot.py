@@ -6,9 +6,9 @@
 #
 
 # This is to help vscode
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Callable
 
-import commands2
+from commands2 import Command, CommandScheduler
 import wpilib
 import wpilib.event
 
@@ -29,11 +29,13 @@ from subsystems.drivetrain import Drivetrain
 from subsystems.arm import Arm
 from subsystems.shooter import Shooter
 from subsystems.vision import Vision
-from utils.coroutinecommand import commandify, CoroutineCommand
+from utils.coroutinecommand import RestartableCommand, commandify
 
 import utils.math
 
 from wpilib import CameraServer
+
+from utils.gentools import doneable
 
 
 from pathplannerlib.auto import PathPlannerAuto, AutoBuilder, PathPlannerPath, NamedCommands
@@ -48,7 +50,7 @@ class MyRobot(wpilib.TimedRobot):
         # CameraServer.launch("camera.py")
 
         # Command scheduler
-        self.scheduler = commands2.CommandScheduler.getInstance()
+        self.scheduler = CommandScheduler.getInstance()
 
         self.swerve = Drivetrain()
         self.arm = Arm(30, 35)
@@ -58,13 +60,20 @@ class MyRobot(wpilib.TimedRobot):
             self.arm,
             self.shooter,
         )
-        
-        NamedCommands.registerCommand('prepareIntake', self.prepareIntake().asProxy()) # type: ignore
-        NamedCommands.registerCommand('shootArm', self.shootArm().asProxy()) # type: ignore
-        NamedCommands.registerCommand('spinShooter', self.spinShooter().asProxy()) # type: ignore
-        NamedCommands.registerCommand('finishShot', self.finishShot().asProxy()) # type: ignore
-        NamedCommands.registerCommand('secondThing', self.secondThing().asProxy()) # type: ignore
-        NamedCommands.registerCommand('secondThing2', self.secondThing().asProxy()) # type: ignore
+
+        # We call this registerNamedCommand wrapper to ensure statically that all
+        # our PathPlanner event commands are restartable.
+        def registerNamedCommand(name: str, cmd: Callable[[], Command]):
+            NamedCommands.registerCommand(name, RestartableCommand(cmd))
+
+        registerNamedCommand('shootArm', commandify(self.shootArm))
+        registerNamedCommand('spinShooter', commandify(self.spinShooter))
+        registerNamedCommand('finishShot', commandify(self.finishShot))
+        registerNamedCommand('firstShot', commandify(self.firstShot))
+        registerNamedCommand('secondThing', commandify(self.secondThing))
+        registerNamedCommand('secondThing2', commandify(self.secondThing))
+        registerNamedCommand('secondThing3', commandify(self.secondThing))
+        registerNamedCommand('stopIntake', commandify(self.stopIntake))
 
         self.swerve.setupPathPlanner()
         self.armButton = wpilib.DigitalInput(0)
@@ -88,15 +97,24 @@ class MyRobot(wpilib.TimedRobot):
 
         self.autoPID = wpimath.controller.PIDController(1 / 2, 0, 0.05)
 
-        self.selectedAuto = "None"
+        # In order to play nice with PathPlanner's autos, which are Command-only,
+        # we always store Commands in our auto chooser. However, since we want our
+        # autos to be restartable, we use these wrappers to ensure that all our auto
+        # options can be wrapped in RestartableCommand.
         self.autoChooser = wpilib.SendableChooser()
+        def setDefaultAuto(name: str, cmd: Callable[[], Command]):
+            self.autoChooser.setDefaultOption(name, RestartableCommand(cmd))
+        def addAuto(name: str, cmd: Callable[[], Command]):
+            self.autoChooser.addOption(name, RestartableCommand(cmd))
 
-        self.autoChooser.setDefaultOption("None", self.doNothingAuto())
-        self.autoChooser.addOption("Two Note", self.twoNoteAuto())
-        self.autoChooser.addOption("Two Note Driver Right", self.twoNoteDriverRightAuto())
-        self.autoChooser.addOption("aslkjaslkfd", PathPlannerAuto("New Auto"))
-        self.autoChooser.addOption("Auto Test", PathPlannerAuto("Two Note"))
-        self.autoChooser.addOption("Three Note", PathPlannerAuto("Three Note"))
+        setDefaultAuto("None", commandify(self.doNothingAuto))
+        addAuto("Two Note", commandify(self.twoNoteAuto))
+        addAuto("Two Note Driver Right", commandify(self.twoNoteDriverRightAuto))
+        addAuto("aslkjaslkfd", lambda: PathPlannerAuto("New Auto"))
+        addAuto("Auto Test", lambda: PathPlannerAuto("Two Note"))
+        addAuto("Three Note", lambda: PathPlannerAuto("Three Note"))
+        addAuto("Four Note", lambda: PathPlannerAuto("Four Note"))
+        addAuto("Two Nothing", commandify(self.twoNothing))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -155,6 +173,8 @@ class MyRobot(wpilib.TimedRobot):
         # TODO: This should almost certainly move to teleopPeriodic.
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
+
+        SmartDashboard.putBoolean("shooter/isNote", self.shooter.noteDetected())
 
     def autonomousInit(self) -> None:
         self.scheduler.cancelAll()
@@ -286,6 +306,7 @@ class MyRobot(wpilib.TimedRobot):
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
 
+    @doneable
     def driveToPoint(self, point: wpimath.geometry.Pose2d):
         while True:
             yield
@@ -316,7 +337,7 @@ class MyRobot(wpilib.TimedRobot):
 
             # print(self.swerve.getPose().translation())
 
-    @commandify
+    @doneable
     def doNothingAuto(self):
         print("Doing nothing...")
         yield from sleep(2)
@@ -324,18 +345,40 @@ class MyRobot(wpilib.TimedRobot):
         yield from sleep(2)
         print("Done doing nothing :)")
 
-    @commandify
+    @doneable
+    def twoNothing(self):
+        nothingOne = self.doNothingAuto()
+        nothingTwo = self.doNothingAuto()
+
+        while not (nothingOne.done or nothingTwo.done):
+            nothingOne.resume()
+            nothingTwo.resume()
+            yield
+
+    @doneable
     def oneNoteAuto(self):
         yield from self.shootNote()
 
-    @commandify
+    @doneable
+    def smartintake(self):
+        self.shooter.setIntakeSpeed(-0.5)
+        while not self.shooter.noteDetected():
+            yield
+        self.shooter.setIntakeSpeed(0)
+
+    @doneable
     def twoNoteAuto(self):
         yield from self.shootNote()
         yield from sleep(1)
         # # TODO: real poses
         print("Driving to note")
-        self.prepareIntake()
-        yield from self.driveToPoint(wpimath.geometry.Pose2d(2, 0, wpimath.geometry.Rotation2d()))
+        intakeInst = self.smartintake()
+        driveToPointOne = self.driveToPoint(wpimath.geometry.Pose2d(2, 0, wpimath.geometry.Rotation2d()))
+
+        while not (driveToPointOne.done):
+            intakeInst.resume()
+            driveToPointOne.resume()
+
         self.shooter.setIntakeSpeed(0)
         print("Driving back to speaker")
         yield from self.driveToPoint(wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d()))
@@ -347,23 +390,23 @@ class MyRobot(wpilib.TimedRobot):
 
         yield from self.shootNote()
 
-    @commandify
+    @doneable
     def reverseIntake(self):
         self.shooter.setIntakeSpeed(0.2)
         yield from sleep(0.25)
 
-    @commandify
+    @doneable
     def stopIntake(self):
         self.shooter.setIntakeSpeed(0)
         yield
 
-    @commandify
+    @doneable
     def twoNoteDriverRightAuto(self):
         yield from self.shootNote()
         yield from sleep(1)
         # # TODO: real poses
         print("Driving to note")
-        self.prepareIntake()
+
         yield from self.driveToPoint(wpimath.geometry.Pose2d(1.068, 1.331, wpimath.geometry.Rotation2d.fromDegrees(60)))
         self.shooter.setIntakeSpeed(0)
         print("Driving back to speaker")
@@ -376,18 +419,18 @@ class MyRobot(wpilib.TimedRobot):
 
         yield from self.shootNote()
 
-    @commandify
+    @doneable
     def shootArm(self):
         self.arm.setArmPreset("low")
         yield from sleep(1)
 
-    @commandify
+    @doneable
     def spinShooter(self):
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
         while not self.shooter.atTarget():
             yield
 
-    @commandify
+    @doneable
     def finishShot(self):
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(0.25)
@@ -395,7 +438,7 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setShooterSpeed(0)
         self.arm.setArmPreset("intake")
 
-    @commandify
+    @doneable
     def shootNote(self):
         self.shooter.setIntakeSpeed(0)
         print("Shooting note")
@@ -409,11 +452,20 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setIntakeSpeed(0)
         self.shooter.setShooterSpeed(0)
         self.arm.setArmPreset("intake")
-        
-    @commandify
+
+    @doneable
+    def firstShot(self):
+        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
+        yield from self.shootArm()
+        while not self.shooter.atTarget():
+            yield
+        self.shooter.setIntakeSpeed(-0.8)
+        yield from sleep(0.5)
+        self.shooter.setShooterSpeed(0)
+        self.arm.setArmPreset("intake") 
+
+    @doneable
     def secondThing(self):
-        yield from sleep(0.1)
-        self.shootArm()
         self.shooter.setIntakeSpeed(0)
         self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
         yield from self.shootArm()
@@ -425,16 +477,7 @@ class MyRobot(wpilib.TimedRobot):
         self.shooter.setShooterSpeed(0)
         self.arm.setArmPreset("intake")        
 
-    @commandify
-    def prepareIntake(self):
-        print("preparing")
-        self.arm.setArmPreset("intake")
-        self.shooter.setShooterSpeed(-100)
-        self.shooter.setIntakeSpeed(-0.8)
-        yield
-        print("done")
-
-    @commandify
+    @doneable
     def prepareIntake2(self):
         print("preparing")
         self.arm.setArmPreset("intake")
@@ -443,6 +486,7 @@ class MyRobot(wpilib.TimedRobot):
         yield
         print("done")
 
+@doneable
 def sleep(duration: float):
     t = wpilib.Timer()
     t.start()

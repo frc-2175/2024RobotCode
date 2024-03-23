@@ -72,6 +72,37 @@
               }
             ]
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Bottom Note"
+          }
+        },
+        {
+          "type": "parallel",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Bottom Return"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "secondThing3"
+                }
+              }
+            ]
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "stopIntake"
+          }
         }
       ]
     }

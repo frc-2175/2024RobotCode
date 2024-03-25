@@ -2,7 +2,7 @@
 from functools import wraps
 from typing import Callable, Iterator, ParamSpec, Set
 
-from commands2 import Command
+from commands2 import Command, CommandScheduler
 from commands2.subsystem import Subsystem
 
 
@@ -56,6 +56,8 @@ class RestartableCommand(Command):
         self.isActive = False
 
     def initialize(self):
+        if self.isActive:
+            CommandScheduler.getInstance().cancel(self.cmd)
         self.cmd = self.make()
         if self.didEverInitialize:
             finishedMsg = " (had not finished)" if self.isActive else ""

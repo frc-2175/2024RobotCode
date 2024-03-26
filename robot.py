@@ -173,6 +173,8 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve.headingController.setState(SwerveHeadingState.OFF)
         self.scheduler.cancelAll()
 
+        self.intakeLocked = False
+
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):
             self.driveWithJoystick(False)
@@ -191,24 +193,25 @@ class MyRobot(wpilib.TimedRobot):
         else:
             self.arm.setArmPreset("intake")
             shooterPower = constants.kShooterPresets["intake"]
-          
-        if self.gamePad.getRightBumper() or self.gamePad.getAButton() or self.gamePad.getYButton() or self.gamePad.getXButton():
+
+        intakeSpeed = wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1)
+
+        if self.shooter.noteDetected():
+            if 0 < -self.gamePad.getLeftY():
+                intakeSpeed = -self.gamePad.getLeftY()
+            else:
+                intakeSpeed = 0
+
+        if self.gamePad.getRightBumper():
+            self.shooter.setShooterSpeed(shooterPower)
+            if self.shooter.isShooterAtTarget(shooterPower):
+                intakeSpeed = -0.8
+        elif self.gamePad.getAButton() or self.gamePad.getYButton() or self.gamePad.getXButton():
             self.shooter.setShooterSpeed(shooterPower)
         else:
             self.shooter.setShooterSpeed(0)
 
-        if self.gamePad.getLeftBumper():
-            self.shooter.setIntakeSpeed(-0.8)
-        else:
-        # if self.gamePad.getBackButton > 0.5:
-            self.shooter.setIntakeSpeed(wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1))
-        # elif self.gamePad.getLeftTriggerAxis() > 0.5:
-        #     self.shooter.setIntakeSpeed(-self.gamePad.getLeftTriggerAxis())
-        # else:
-        #     self.shooter.setIntakeSpeed(0)
-
-        # if self.gamePad.getRightTriggerAxis() > 0.5:
-        #     self.shooter.intakeNote()
+        self.shooter.setIntakeSpeed(intakeSpeed)
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:

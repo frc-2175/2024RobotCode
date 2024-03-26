@@ -7,22 +7,20 @@ import constants
 class Shooter(Subsystem):
     upperkP = 0
     upperkI = 0
-    upperkFF = 1.05/5500
+    upperkFF = 1.0/5500
 
     proximity = 0
     updateTimer = wpilib.Timer()
     color: wpilib.Color
     colorTimer = wpilib.Timer()
 
+    intakeSensor = wpilib.AnalogInput(0)
+
     def __init__(self, lowerMotorId, upperMotorId, intakeMotorId) -> None:
         self.upperMotor = rev.CANSparkMax(upperMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.lowerMotor = rev.CANSparkMax(lowerMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
-        #Addresses REVlib issue #55: https://github.com/robotpy/robotpy-rev/issues/55
-        if wpilib.RobotBase.isSimulation():
-            self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
-        else:
-            self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushed)
+        self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
         self.motorIntake.setInverted(True)
 
@@ -64,6 +62,15 @@ class Shooter(Subsystem):
         self.lowerTarget = velocity
         self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
         self.lowerPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
+
+    def getShooterSpeed(self):
+        return self.upperEncoder.getVelocity()
+    
+    def isShooterAtTarget(self, targetSpeed):
+        if (targetSpeed - 100) < self.upperEncoder.getVelocity():
+            return True
+        else:
+            return False
 
     def setIntakeSpeed(self, motorSpeed):
         self.motorIntake.set(motorSpeed * 0.5)
@@ -108,6 +115,12 @@ class Shooter(Subsystem):
 
     #     if self.colorTimer.advanceIfElapsed(0.012):
     #         self.proximity = self.colorSensor.getProximity()
+
+    def noteDetected(self):
+        if 1.5 < self.intakeSensor.getVoltage() < 2.5:
+            return True
+        else:
+            return False
 
     def updateTelemetry(self):
         SmartDashboard.putNumber("shooter/upperSpeed", self.upperEncoder.getVelocity())

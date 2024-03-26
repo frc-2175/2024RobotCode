@@ -17,13 +17,12 @@ class Arm(Subsystem):
     def __init__(self, angleMotorId, followerId) -> None:
         self.angleMotor = rev.CANSparkMax(angleMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.angleMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
+        self.angleMotor.setInverted(False)
         self.followerMotor = rev.CANSparkMax(followerId, rev.CANSparkLowLevel.MotorType.kBrushless)
         self.followerMotor.follow(self.angleMotor, True)
         self.followerMotor.setIdleMode(rev.CANSparkMax.IdleMode.kBrake)
 
         self.feedforward = wpimath.controller.ArmFeedforward(0, 0.34, 5.85, 0.02)
-
-        self.angleMotor.setInverted(True)
 
         if wpilib.RobotBase.isSimulation():
             self.angleEncoder = self.angleMotor.getAlternateEncoder(rev.SparkMaxAlternateEncoder.Type.kQuadrature, 1024)

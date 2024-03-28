@@ -19,8 +19,8 @@ kShooterTolerance = 100
 
 kArmPresets = {
     "intake": math.radians(0),
-    "low": math.radians(17),
-    "mid": math.radians(30),
+    "low": math.radians(12),
+    "mid": math.radians(27),
     "high": math.radians(90)
 }
 
@@ -31,8 +31,8 @@ kArmLength = wpimath.units.inchesToMeters(26.5)
 
 kShooterPresets = {
     "intake": 3000,
-    "low": 3000,
-    "mid": 3000,
+    "low": 3500,
+    "mid": 3800,
     "high": 1200,
 }
 

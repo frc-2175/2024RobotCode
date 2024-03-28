@@ -98,6 +98,12 @@ class Arm(Subsystem):
         self.angleMotor.setIdleMode(mode)
         self.followerMotor.setIdleMode(mode)
 
+    def atTarget(self):
+        if self.targetAngle - math.radians(1) < self.getArmAngle() < self.targetAngle + math.radians(1):
+            return True
+        else:
+            return
+
     def periodic2175(self):
         feedforward = self.feedforward.calculate(self.angleEncoder.getPosition(), self.angleEncoder.getVelocity())
         SmartDashboard.putNumber("arm/feedforward", feedforward)
@@ -109,3 +115,4 @@ class Arm(Subsystem):
         SmartDashboard.putNumber("arm/target", self.targetAngle)
         self.armMech.setAngle(math.degrees(self.angleEncoder.getPosition()))
         self.componentTopic.set(Pose3d(inchesToMeters(-8.797571), 0, inchesToMeters(10.801276), Rotation3d(math.pi/2-self.getArmAngle(), 0, math.pi/2)))
+

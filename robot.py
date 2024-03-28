@@ -67,13 +67,12 @@ class MyRobot(wpilib.TimedRobot):
             NamedCommands.registerCommand(name, RestartableCommand(cmd))
 
         registerNamedCommand('shootArm', commandify(self.shootArm))
-        registerNamedCommand('spinShooter', commandify(self.spinShooter))
-        registerNamedCommand('finishShot', commandify(self.finishShot))
-        registerNamedCommand('firstShot', commandify(self.firstShot))
-        registerNamedCommand('secondThing', commandify(self.secondThing))
-        registerNamedCommand('secondThing2', commandify(self.secondThing))
-        registerNamedCommand('secondThing3', commandify(self.secondThing))
-        registerNamedCommand('stopIntake', commandify(self.stopIntake))
+        registerNamedCommand("setArmIntake", commandify(self.setArmIntake))
+        registerNamedCommand("setArmSpeaker", commandify(self.setArmSpeaker))
+        registerNamedCommand("setArmAmp", commandify(self.setArmAmp))
+        registerNamedCommand("intakeNote", commandify(self.intakeNote))
+        registerNamedCommand("shootNote", commandify(self.shootNote))
+        registerNamedCommand("stopIntake", commandify(self.stopIntake))
 
         self.swerve.setupPathPlanner()
         self.armButton = wpilib.DigitalInput(0)
@@ -174,8 +173,6 @@ class MyRobot(wpilib.TimedRobot):
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
 
-        SmartDashboard.putBoolean("shooter/isNote", self.shooter.noteDetected())
-
     def autonomousInit(self) -> None:
         self.scheduler.cancelAll()
         self.swerve.gyro.reset()
@@ -225,7 +222,7 @@ class MyRobot(wpilib.TimedRobot):
         if self.gamePad.getRightBumper():
             self.shooter.setShooterSpeed(shooterPower)
             if self.shooter.isShooterAtTarget(shooterPower):
-                intakeSpeed = -0.8
+                intakeSpeed = -1
         elif self.gamePad.getAButton() or self.gamePad.getYButton() or self.gamePad.getXButton():
             self.shooter.setShooterSpeed(shooterPower)
         else:
@@ -338,6 +335,29 @@ class MyRobot(wpilib.TimedRobot):
             # print(self.swerve.getPose().translation())
 
     @doneable
+    def setArmSpeaker(self):
+        print("going to speaker preset")
+        self.arm.setArmPreset("low")
+        self.shooter.setShooterPreset("low")
+        yield
+
+    @doneable    
+    def setArmAmp(self):
+        print("going to amp preset")
+        self.arm.setArmPreset("high")
+        self.shooter.setShooterPreset("high")
+        yield
+
+    @doneable
+    def setArmIntake(self):
+        print("going to intake preset")
+        self.arm.setArmPreset("intake")
+        self.shooter.setShooterSpeed(0)
+        yield
+
+    
+
+    @doneable
     def doNothingAuto(self):
         print("Doing nothing...")
         yield from sleep(2)
@@ -360,11 +380,14 @@ class MyRobot(wpilib.TimedRobot):
         yield from self.shootNote()
 
     @doneable
-    def smartintake(self):
+    def intakeNote(self):
+        print("intaking note")
+        self.arm.setArmPreset("intake")
         self.shooter.setIntakeSpeed(-0.5)
         while not self.shooter.noteDetected():
             yield
         self.shooter.setIntakeSpeed(0)
+        print("done intaking note")
 
     @doneable
     def twoNoteAuto(self):
@@ -372,7 +395,7 @@ class MyRobot(wpilib.TimedRobot):
         yield from sleep(1)
         # # TODO: real poses
         print("Driving to note")
-        intakeInst = self.smartintake()
+        intakeInst = self.intakeNote()
         driveToPointOne = self.driveToPoint(wpimath.geometry.Pose2d(2, 0, wpimath.geometry.Rotation2d()))
 
         while not (driveToPointOne.done):
@@ -440,18 +463,23 @@ class MyRobot(wpilib.TimedRobot):
 
     @doneable
     def shootNote(self):
-        self.shooter.setIntakeSpeed(0)
         print("Shooting note")
+        self.shooter.setIntakeSpeed(0)
         self.arm.setArmPreset("low")
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        while not self.shooter.atTarget():
+        self.shooter.setShooterPreset("low")
+
+        t = AutoTimer(3)
+        while not (self.shooter.atTarget() and self.arm.atTarget()) and not t.expired():
             yield
         
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)
         self.shooter.setShooterSpeed(0)
+
         self.arm.setArmPreset("intake")
+
+
 
     @doneable
     def firstShot(self):
@@ -493,8 +521,16 @@ def sleep(duration: float):
     while not t.hasElapsed(duration):
         yield
 
-
+class AutoTimer:
+    def __init__(self, duration: float):
+        self.duration = duration
+        self.t = wpilib.Timer()
+        self.t.start()
         
-        
+    def expired(self):
+        if self.t.hasElapsed(self.duration):
+            return True
+        else:
+            return False
 
     

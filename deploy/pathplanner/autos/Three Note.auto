@@ -14,63 +14,109 @@
         {
           "type": "named",
           "data": {
-            "name": "firstShot"
+            "name": "shootNote"
+          }
+        },
+        {
+          "type": "deadline",
+          "data": {
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Middle Note"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Middle Return"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intakeNote"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "setArmSpeaker"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {
           "type": "named",
           "data": {
-            "name": "prepareIntake"
+            "name": "shootNote"
           }
         },
         {
-          "type": "path",
-          "data": {
-            "pathName": "Middle Note"
-          }
-        },
-        {
-          "type": "parallel",
+          "type": "deadline",
           "data": {
             "commands": [
               {
-                "type": "path",
+                "type": "sequential",
                 "data": {
-                  "pathName": "Middle Return"
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Top Note"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Top Note Return"
+                      }
+                    }
+                  ]
                 }
               },
               {
-                "type": "named",
+                "type": "sequential",
                 "data": {
-                  "name": "secondThing"
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intakeNote"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "setArmSpeaker"
+                      }
+                    }
+                  ]
                 }
               }
             ]
           }
         },
         {
-          "type": "path",
+          "type": "named",
           "data": {
-            "pathName": "Top Note"
-          }
-        },
-        {
-          "type": "parallel",
-          "data": {
-            "commands": [
-              {
-                "type": "path",
-                "data": {
-                  "pathName": "Top Note Return"
-                }
-              },
-              {
-                "type": "named",
-                "data": {
-                  "name": "secondThing2"
-                }
-              }
-            ]
+            "name": "shootNote"
           }
         }
       ]

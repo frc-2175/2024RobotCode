@@ -59,8 +59,6 @@ class Shooter(Subsystem):
         self.updateTimer.start()
 
         self.noteIntaked = False
-
-        self.intakeSensor = wpilib.AnalogInput(0)
     
     def setShooterSpeed(self, velocity):
         self.upperTarget = velocity
@@ -71,6 +69,9 @@ class Shooter(Subsystem):
             return
         self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
         self.lowerPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
+
+    def setShooterPreset(self, preset):
+        self.setShooterSpeed(constants.kShooterPresets[preset])
 
     def getShooterSpeed(self):
         return self.upperEncoder.getVelocity()
@@ -136,3 +137,5 @@ class Shooter(Subsystem):
         SmartDashboard.putNumber("shooter/lowerSpeed", self.lowerEncoder.getVelocity())
         SmartDashboard.putNumber("shooter/upperTarget", self.upperTarget)
         SmartDashboard.putNumber("shooter/lowerTarget", self.lowerTarget)
+        SmartDashboard.putNumber("shooter/sensor", self.intakeSensor.getVoltage())
+        SmartDashboard.putBoolean("shooter/isNote", self.noteDetected())

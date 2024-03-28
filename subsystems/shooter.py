@@ -42,13 +42,13 @@ class Shooter(Subsystem):
         self.lowerMotor.disableVoltageCompensation()
 
         self.upperPIDController.setP(self.upperkP)
-        self.upperPIDController.setI(0.0000001)
-        self.upperPIDController.setIZone(constants.kShooterTolerance*2)
+        self.upperPIDController.setI(0.0000004)
+        self.upperPIDController.setIZone(constants.kShooterTolerance*2.5)
         self.upperPIDController.setFF(self.upperkFF)
 
         self.lowerPIDController.setP(0.00000)
-        self.lowerPIDController.setI(0.0000001)
-        self.lowerPIDController.setIZone(constants.kShooterTolerance*2)
+        self.lowerPIDController.setI(0.0000004)
+        self.lowerPIDController.setIZone(constants.kShooterTolerance*2.5)
         self.lowerPIDController.setFF(1/5500)
 
         self.upperTarget = 0

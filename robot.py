@@ -219,7 +219,7 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 intakeSpeed = 0
 
-        if self.gamePad.getRightBumper():
+        if self.gamePad.getLeftBumper() or self.gamePad.getRightBumper():
             self.shooter.setShooterSpeed(shooterPower)
             if self.shooter.isShooterAtTarget(shooterPower):
                 intakeSpeed = -1

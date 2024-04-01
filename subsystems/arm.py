@@ -90,7 +90,7 @@ class Arm(Subsystem):
         self.targetAngle = angle
         self.anglePIDController.setReference(self.targetAngle, rev.CANSparkMax.ControlType.kPosition)
     
-    def setArmPreset(self, preset:str):
+    def setArmPreset(self, preset: constants.Preset):
         """Set the arm to a preset angle (defined in constants.py)"""
         self.setArmAngleDegrees(constants.kArmPresets[preset])
 

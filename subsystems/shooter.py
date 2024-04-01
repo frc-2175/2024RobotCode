@@ -70,7 +70,7 @@ class Shooter(Subsystem):
         self.upperPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
         self.lowerPIDController.setReference(velocity, rev.CANSparkMax.ControlType.kVelocity)
 
-    def setShooterPreset(self, preset):
+    def setShooterPreset(self, preset: constants.Preset):
         self.setShooterSpeed(constants.kShooterPresets[preset])
 
     def getShooterSpeed(self):

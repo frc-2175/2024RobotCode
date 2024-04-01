@@ -6,7 +6,7 @@
 #
 
 # This is to help vscode
-from typing import TYPE_CHECKING, Callable
+from typing import Callable
 
 from commands2 import Command, CommandScheduler
 import wpilib
@@ -32,8 +32,6 @@ from subsystems.vision import Vision
 from utils.coroutinecommand import RestartableCommand, commandify
 
 import utils.math
-
-from wpilib import CameraServer
 
 from utils.gentools import doneable
 
@@ -66,7 +64,6 @@ class MyRobot(wpilib.TimedRobot):
         def registerNamedCommand(name: str, cmd: Callable[[], Command]):
             NamedCommands.registerCommand(name, RestartableCommand(cmd))
 
-        registerNamedCommand('shootArm', commandify(self.shootArm))
         registerNamedCommand("setArmIntake", commandify(self.setArmIntake))
         registerNamedCommand("setArmSpeaker", commandify(self.setArmSpeaker))
         registerNamedCommand("setArmAmp", commandify(self.setArmAmp))
@@ -107,13 +104,12 @@ class MyRobot(wpilib.TimedRobot):
             self.autoChooser.addOption(name, RestartableCommand(cmd))
 
         setDefaultAuto("None", commandify(self.doNothingAuto))
-        addAuto("Two Note", commandify(self.twoNoteAuto))
-        addAuto("Two Note Driver Right", commandify(self.twoNoteDriverRightAuto))
+        addAuto("Two Nothing", commandify(self.twoNothing))
         addAuto("aslkjaslkfd", lambda: PathPlannerAuto("New Auto"))
-        addAuto("Auto Test", lambda: PathPlannerAuto("Two Note"))
+        addAuto("One Note", commandify(self.oneNoteAuto))
+        addAuto("Two Note", lambda: PathPlannerAuto("Two Note"))
         addAuto("Three Note", lambda: PathPlannerAuto("Three Note"))
         addAuto("Four Note", lambda: PathPlannerAuto("Four Note"))
-        addAuto("Two Nothing", commandify(self.twoNothing))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -303,36 +299,36 @@ class MyRobot(wpilib.TimedRobot):
     # --------------------------------------------------------------------
     # --------------------------------------------------------------------
 
-    @doneable
-    def driveToPoint(self, point: wpimath.geometry.Pose2d):
-        while True:
-            yield
+    # @doneable
+    # def driveToPoint(self, point: wpimath.geometry.Pose2d):
+    #     while True:
+    #         yield
             
 
-            direction = point.translation() - self.swerve.getPose().translation()
-            error = direction.norm()
+    #         direction = point.translation() - self.swerve.getPose().translation()
+    #         error = direction.norm()
 
-            if error < 0.1:
-                self.swerve.drive(0, 0, 0, True, self.getPeriod())
-                return
+    #         if error < 0.1:
+    #             self.swerve.drive(0, 0, 0, True, self.getPeriod())
+    #             return
 
-            pidOut = self.autoPID.calculate(-error) # Negated because normally you don't use error as your process variable
+    #         pidOut = self.autoPID.calculate(-error) # Negated because normally you don't use error as your process variable
             
-            clampMag = 0.25
-            if pidOut > clampMag:
-                pidOut = clampMag
-            elif pidOut < 0:
-                pidOut = 0
+    #         clampMag = 0.25
+    #         if pidOut > clampMag:
+    #             pidOut = clampMag
+    #         elif pidOut < 0:
+    #             pidOut = 0
 
-            normalized = (direction / direction.norm())
-            outputX = normalized.X() * pidOut * constants.kMaxSpeed
-            outputY = normalized.Y() * pidOut * constants.kMaxSpeed
-            # print(direction, error, pidOut, (outputX, outputY))
+    #         normalized = (direction / direction.norm())
+    #         outputX = normalized.X() * pidOut * constants.kMaxSpeed
+    #         outputY = normalized.Y() * pidOut * constants.kMaxSpeed
+    #         # print(direction, error, pidOut, (outputX, outputY))
 
-            #TODO this should be field relative
-            self.swerve.drive(outputX, outputY, 0, False, self.getPeriod(), point.rotation())
+    #         #TODO this should be field relative
+    #         self.swerve.drive(outputX, outputY, 0, False, self.getPeriod(), point.rotation())
 
-            # print(self.swerve.getPose().translation())
+    #         # print(self.swerve.getPose().translation())
 
     @doneable
     def setArmSpeaker(self):
@@ -354,8 +350,6 @@ class MyRobot(wpilib.TimedRobot):
         self.arm.setArmPreset("intake")
         self.shooter.setShooterSpeed(0)
         yield
-
-    
 
     @doneable
     def doNothingAuto(self):
@@ -390,76 +384,9 @@ class MyRobot(wpilib.TimedRobot):
         print("done intaking note")
 
     @doneable
-    def twoNoteAuto(self):
-        yield from self.shootNote()
-        yield from sleep(1)
-        # # TODO: real poses
-        print("Driving to note")
-        intakeInst = self.intakeNote()
-        driveToPointOne = self.driveToPoint(wpimath.geometry.Pose2d(2, 0, wpimath.geometry.Rotation2d()))
-
-        while not (driveToPointOne.done):
-            intakeInst.resume()
-            driveToPointOne.resume()
-
-        self.shooter.setIntakeSpeed(0)
-        print("Driving back to speaker")
-        yield from self.driveToPoint(wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d()))
-
-        print("Adjusting note")
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
-        self.shooter.setIntakeSpeed(0)
-
-        yield from self.shootNote()
-
-    @doneable
-    def reverseIntake(self):
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
-
-    @doneable
     def stopIntake(self):
         self.shooter.setIntakeSpeed(0)
         yield
-
-    @doneable
-    def twoNoteDriverRightAuto(self):
-        yield from self.shootNote()
-        yield from sleep(1)
-        # # TODO: real poses
-        print("Driving to note")
-
-        yield from self.driveToPoint(wpimath.geometry.Pose2d(1.068, 1.331, wpimath.geometry.Rotation2d.fromDegrees(60)))
-        self.shooter.setIntakeSpeed(0)
-        print("Driving back to speaker")
-        yield from self.driveToPoint(wpimath.geometry.Pose2d(0, 0, wpimath.geometry.Rotation2d()))
-
-        print("Adjusting note")
-        self.shooter.setIntakeSpeed(0.2)
-        yield from sleep(0.25)
-        self.shooter.setIntakeSpeed(0)
-
-        yield from self.shootNote()
-
-    @doneable
-    def shootArm(self):
-        self.arm.setArmPreset("low")
-        yield from sleep(1)
-
-    @doneable
-    def spinShooter(self):
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        while not self.shooter.atTarget():
-            yield
-
-    @doneable
-    def finishShot(self):
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(0.25)
-        self.shooter.setIntakeSpeed(0)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")
 
     @doneable
     def shootNote(self):
@@ -471,7 +398,7 @@ class MyRobot(wpilib.TimedRobot):
         t = AutoTimer(3)
         while not (self.shooter.atTarget() and self.arm.atTarget()) and not t.expired():
             yield
-        
+
         self.shooter.setIntakeSpeed(-0.8)
         yield from sleep(1)
         self.shooter.setIntakeSpeed(0)
@@ -479,40 +406,6 @@ class MyRobot(wpilib.TimedRobot):
 
         self.arm.setArmPreset("intake")
 
-
-
-    @doneable
-    def firstShot(self):
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from self.shootArm()
-        while not self.shooter.atTarget():
-            yield
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(0.5)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake") 
-
-    @doneable
-    def secondThing(self):
-        self.shooter.setIntakeSpeed(0)
-        self.shooter.setShooterSpeed(constants.kShooterPresets["low"])
-        yield from self.shootArm()
-        while not self.shooter.atTarget():
-            yield
-        
-        self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(0.5)
-        self.shooter.setShooterSpeed(0)
-        self.arm.setArmPreset("intake")        
-
-    @doneable
-    def prepareIntake2(self):
-        print("preparing")
-        self.arm.setArmPreset("intake")
-        self.shooter.setShooterSpeed(-100)
-        self.shooter.setIntakeSpeed(-0.8)
-        yield
-        print("done")
 
 @doneable
 def sleep(duration: float):

@@ -18,21 +18,48 @@
           }
         },
         {
-          "type": "named",
+          "type": "deadline",
           "data": {
-            "name": "prepareIntake"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Middle Note"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Middle Return"
+            "commands": [
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Middle Note"
+                      }
+                    },
+                    {
+                      "type": "path",
+                      "data": {
+                        "pathName": "Middle Return"
+                      }
+                    }
+                  ]
+                }
+              },
+              {
+                "type": "sequential",
+                "data": {
+                  "commands": [
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "intakeNote"
+                      }
+                    },
+                    {
+                      "type": "named",
+                      "data": {
+                        "name": "setArmSpeaker"
+                      }
+                    }
+                  ]
+                }
+              }
+            ]
           }
         },
         {

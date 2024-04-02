@@ -27,7 +27,7 @@ class SwerveHeadingController:
         if self.state == SwerveHeadingState.DISABLE:
             return rot
         
-        bot_turning = math.fabs(rot) > 0.1
+        bot_turning = math.fabs(rot) > 0.1 or math.fabs(self.gyro.getRate()) > 1
         bot_translating = xSpeed != 0 or ySpeed != 0
         shouldChangeToMaintain = not bot_turning and bot_translating
 

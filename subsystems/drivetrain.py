@@ -237,3 +237,5 @@ class Drivetrain(Subsystem):
         ])
 
         SmartDashboard.putNumber("gyro", self.gyro.getRotation2d().radians())
+
+        SmartDashboard.putNumber("gyroRate", self.gyro.getRate())

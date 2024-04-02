@@ -81,7 +81,7 @@ class MyRobot(wpilib.TimedRobot):
         # Slew rate limiters to make joystick inputs more gentle
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(8)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(8)
-        self.rotLimiter = wpimath.filter.SlewRateLimiter(12)
+        self.rotLimiter = wpimath.filter.SlewRateLimiter(6)
 
         self.swerve.updatePIDConfig()
 
@@ -110,6 +110,9 @@ class MyRobot(wpilib.TimedRobot):
         addAuto("Two Note", lambda: PathPlannerAuto("Two Note"))
         addAuto("Three Note", lambda: PathPlannerAuto("Three Note"))
         addAuto("Four Note", lambda: PathPlannerAuto("Four Note"))
+        addAuto("Three Note Side", lambda: PathPlannerAuto("Three Note Side"))
+        addAuto("Two Note Side", lambda: PathPlannerAuto("Two Note Side"))
+        addAuto("Two Note Side Rollout", lambda: PathPlannerAuto("Two Note Side Rollout"))
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -168,6 +171,7 @@ class MyRobot(wpilib.TimedRobot):
         # TODO: This should almost certainly move to teleopPeriodic.
         if self.leftStick.getRawButtonPressed(8):
             self.swerve.gyro.reset()
+            self.swerve.headingController.setGoal(self.swerve.gyro.getRotation2d())
 
     def autonomousInit(self) -> None:
         self.scheduler.cancelAll()
@@ -400,7 +404,7 @@ class MyRobot(wpilib.TimedRobot):
             yield
 
         self.shooter.setIntakeSpeed(-0.8)
-        yield from sleep(1)
+        yield from sleep(1/3)
         self.shooter.setIntakeSpeed(0)
         self.shooter.setShooterSpeed(0)
 

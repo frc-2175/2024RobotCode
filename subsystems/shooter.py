@@ -23,6 +23,8 @@ class Shooter(Subsystem):
 
         self.motorIntake = rev.CANSparkMax(intakeMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)
 
+        self.motorIntake.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
+
         self.motorIntake.setInverted(True)
 
         self.upperMotor.setIdleMode(rev.CANSparkBase.IdleMode.kCoast)

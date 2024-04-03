@@ -193,7 +193,7 @@ class MyRobot(wpilib.TimedRobot):
         self.intakeLocked = False
 
     def teleopPeriodic(self) -> None:
-        if self.leftStick.getRawButton(3) or self.rightStick.getRawButton(3):
+        if self.leftStick.getRawButton(2) or self.leftStick.getRawButton(3) or self.rightStick.getRawButton(2) or self.rightStick.getRawButton(3):
             self.driveWithJoystick(False)
         else:
             self.driveWithJoystick(True)

@@ -89,6 +89,8 @@ class MyRobot(wpilib.TimedRobot):
         
         self.armButtonPastState = False
 
+        self.wasDetected = False
+
         self.vision = Vision()
 
         self.autoPID = wpimath.controller.PIDController(1 / 2, 0, 0.05)
@@ -214,10 +216,14 @@ class MyRobot(wpilib.TimedRobot):
         intakeSpeed = wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1)
 
         if self.shooter.noteDetected():
-            if 0 < -self.gamePad.getLeftY():
-                intakeSpeed = -self.gamePad.getLeftY()
-            else:
+            self.wasDetected = True
+            if intakeSpeed < 0:
                 intakeSpeed = 0
+        else:
+            if self.wasDetected and intakeSpeed < 0:
+                intakeSpeed = 0
+            else:
+                self.wasDetected = False
 
         if self.gamePad.getLeftBumper() or self.gamePad.getRightBumper():
             self.shooter.setShooterSpeed(shooterPower)

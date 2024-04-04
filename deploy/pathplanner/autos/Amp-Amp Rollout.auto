@@ -60,15 +60,15 @@
           "data": {
             "commands": [
               {
-                "type": "named",
-                "data": {
-                  "name": "intakeNote"
-                }
-              },
-              {
                 "type": "path",
                 "data": {
                   "pathName": "Funny Out"
+                }
+              },
+              {
+                "type": "named",
+                "data": {
+                  "name": "intakeNote"
                 }
               }
             ]

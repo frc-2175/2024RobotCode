@@ -34,7 +34,7 @@ kArmLength = wpimath.units.inchesToMeters(26.5)
 
 kShooterPresets = {
     "intake": 3000,
-    "low": 3500,
+    "low": 4000,
     "mid": 3800,
     "high": 1200,
 }

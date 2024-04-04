@@ -107,14 +107,17 @@ class MyRobot(wpilib.TimedRobot):
 
         setDefaultAuto("None", commandify(self.doNothingAuto))
         addAuto("Two Nothing", commandify(self.twoNothing))
-        addAuto("aslkjaslkfd", lambda: PathPlannerAuto("New Auto"))
         addAuto("One Note", commandify(self.oneNoteAuto))
-        addAuto("Two Note", lambda: PathPlannerAuto("Two Note"))
-        addAuto("Three Note", lambda: PathPlannerAuto("Three Note"))
-        addAuto("Four Note", lambda: PathPlannerAuto("Four Note"))
-        addAuto("Three Note Side", lambda: PathPlannerAuto("Three Note Side"))
-        addAuto("Two Note Side", lambda: PathPlannerAuto("Two Note Side"))
-        addAuto("Two Note Side Rollout", lambda: PathPlannerAuto("Two Note Side Rollout"))
+        
+        addAuto("Amp-Amp", lambda: PathPlannerAuto("Amp-Amp"))
+        addAuto("Amp-Amp Center", lambda: PathPlannerAuto("Amp-Amp Center"))
+        addAuto("Amp-Amp Rollout", lambda: PathPlannerAuto("Amp-Amp Rollout"))
+        addAuto("Center-Center", lambda: PathPlannerAuto("Center-Center"))
+        addAuto("Center-Center Amp", lambda: PathPlannerAuto("Center-Center Amp"))
+        addAuto("Center-Center Amp Source", lambda: PathPlannerAuto("Center-Center Amp Source"))
+        addAuto("Center-Center Source", lambda: PathPlannerAuto("Center-Center Source"))
+        addAuto("Source-Source", lambda: PathPlannerAuto("Source-Source"))
+        
         SmartDashboard.putData("Auto selection", self.autoChooser)
 
     def robotPeriodic(self) -> None:
@@ -193,6 +196,8 @@ class MyRobot(wpilib.TimedRobot):
         self.scheduler.cancelAll()
 
         self.intakeLocked = False
+
+        
 
     def teleopPeriodic(self) -> None:
         if self.leftStick.getRawButton(2) or self.leftStick.getRawButton(3) or self.rightStick.getRawButton(2) or self.rightStick.getRawButton(3):
@@ -288,8 +293,8 @@ class MyRobot(wpilib.TimedRobot):
 
     def disabledInit(self) -> None:
         self.scheduler.cancelAll()
+        self.arm.setIdleMode(rev.CANSparkBase.IdleMode.kBrake)
 
-        
     def disabledPeriodic(self) -> None:
         SmartDashboard.putBoolean("arm/button", self.armButton.get())
         SmartDashboard.putBoolean("arm/buttonOld", self.armButtonPastState)

@@ -15,7 +15,7 @@ class Shooter(Subsystem):
     color: wpilib.Color
     colorTimer = wpilib.Timer()
 
-    intakeSensor = wpilib.AnalogInput(0)
+    intakeSensor = wpilib.AnalogInput(2)
 
     def __init__(self, lowerMotorId, upperMotorId, intakeMotorId) -> None:
         self.upperMotor = rev.CANSparkMax(upperMotorId, rev.CANSparkLowLevel.MotorType.kBrushless)

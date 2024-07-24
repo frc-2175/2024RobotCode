@@ -243,6 +243,8 @@ class MyRobot(wpilib.TimedRobot):
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
+        outreachSpeed = utils.math.remapJoystick(self.rightStick.getRawAxis(2), 1, 0.25)
+
         xSpeed = (
             self.xspeedLimiter.calculate(
                 utils.math.signedPower(
@@ -250,6 +252,7 @@ class MyRobot(wpilib.TimedRobot):
                 )
             )
             * constants.kMaxSpeed
+            * outreachSpeed
         )
 
         # we invert the Y axis of the joysticks
@@ -260,6 +263,7 @@ class MyRobot(wpilib.TimedRobot):
                 )
             )
             * constants.kMaxSpeed
+            * outreachSpeed
         )
         
         rot = (

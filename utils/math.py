@@ -27,3 +27,10 @@ def shotAngle(distance: float) -> float:
     f2 = math.acos(armRadius * constants.kShooterOffset.cos()/relative.norm())
 
     return pivotToTarget - f2 - constants.kShooterOffset.radians()
+
+def remapJoystick(v, min, max):
+    t = (v + 1) / 2
+    return lerp(t, min, max)
+
+def lerp(t, a, b):
+    return (1 - t) * a + t * b

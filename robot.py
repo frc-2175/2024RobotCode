@@ -77,6 +77,7 @@ class MyRobot(wpilib.TimedRobot):
         self.leftStick = wpilib.Joystick(0)
         self.rightStick = wpilib.Joystick(1)
         self.gamePad = wpilib.XboxController(2)
+        self.driveGamePad = wpilib.XboxController(3)
 
         # Slew rate limiters to make joystick inputs more gentle
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(8)
@@ -200,25 +201,27 @@ class MyRobot(wpilib.TimedRobot):
         
 
     def teleopPeriodic(self) -> None:
+        shooterSpeed = utils.math.remapJoystick(self.leftStick.getRawAxis(2), 1000, 6000)
+
         if self.leftStick.getRawButton(2) or self.leftStick.getRawButton(3) or self.rightStick.getRawButton(2) or self.rightStick.getRawButton(3):
             self.driveWithJoystick(False)
         else:
             self.driveWithJoystick(True)
 
-        if self.gamePad.getYButton():
+        if self.gamePad.getYButton() or self.driveGamePad.getYButton():
             self.arm.setArmPreset("high")
             shooterPower = constants.kShooterPresets["high"]
-        elif self.gamePad.getXButton():
+        elif self.gamePad.getXButton() or self.driveGamePad.getXButton():
             self.arm.setArmPreset("mid")
             shooterPower = constants.kShooterPresets["mid"]
-        elif self.gamePad.getAButton():
+        elif self.gamePad.getAButton() or self.driveGamePad.getAButton():
             self.arm.setArmPreset("low")
-            shooterPower = constants.kShooterPresets["low"]
+            shooterPower = shooterSpeed
         else:
             self.arm.setArmPreset("intake")
             shooterPower = constants.kShooterPresets["intake"]
 
-        intakeSpeed = wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1)
+        intakeSpeed = wpimath.applyDeadband(-self.gamePad.getLeftY(), 0.1) + wpimath.applyDeadband(self.driveGamePad.getRawAxis(2), 0.1) + wpimath.applyDeadband(-self.driveGamePad.getRawAxis(3), 0.1)
 
         if self.shooter.noteDetected():
             self.wasDetected = True
@@ -230,7 +233,7 @@ class MyRobot(wpilib.TimedRobot):
             else:
                 self.wasDetected = False
 
-        if self.gamePad.getLeftBumper() or self.gamePad.getRightBumper():
+        if self.gamePad.getLeftBumper() or self.gamePad.getRightBumper() or self.driveGamePad.getLeftBumper() or self.driveGamePad.getRightBumper():
             self.shooter.setShooterSpeed(shooterPower)
             if self.shooter.isShooterAtTarget(shooterPower):
                 intakeSpeed = -1
@@ -243,12 +246,12 @@ class MyRobot(wpilib.TimedRobot):
 
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
-        outreachSpeed = utils.math.remapJoystick(self.rightStick.getRawAxis(2), 1, 0.25)
+        outreachSpeed = utils.math.remapJoystick(self.rightStick.getRawAxis(2), 1, 0.10)
 
         xSpeed = (
             self.xspeedLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(-self.leftStick.getY(), 0.1)
+                    wpimath.applyDeadband(-self.leftStick.getY(), 0.1) + wpimath.applyDeadband(-self.driveGamePad.getRawAxis(1), 0.1)
                 )
             )
             * constants.kMaxSpeed
@@ -259,7 +262,7 @@ class MyRobot(wpilib.TimedRobot):
         ySpeed = (
             self.yspeedLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(-self.leftStick.getX(), 0.1)
+                    wpimath.applyDeadband(-self.leftStick.getX(), 0.1) + wpimath.applyDeadband(-self.driveGamePad.getRawAxis(0), 0.1)
                 )
             )
             * constants.kMaxSpeed
@@ -269,8 +272,9 @@ class MyRobot(wpilib.TimedRobot):
         rot = (
             self.rotLimiter.calculate(
                 utils.math.signedPower(
-                    wpimath.applyDeadband(-self.rightStick.getX(), 0.1)
+                    wpimath.applyDeadband(-self.rightStick.getX(), 0.1) + wpimath.applyDeadband(-self.driveGamePad.getRawAxis(4), 0.1)
                 )
+                *outreachSpeed
             )
             * constants.kMaxAngularSpeed
         )

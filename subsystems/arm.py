@@ -46,7 +46,7 @@ class Arm(Subsystem):
         self.angleMotor.setSoftLimit(rev.CANSparkBase.SoftLimitDirection.kReverse, math.radians(0)) 
 
         self.anglePIDController.setFF(0)
-        self.anglePIDController.setP(1 / math.radians(90))
+        self.anglePIDController.setP(1 / math.radians(180))
         self.anglePIDController.setI(0)
         self.anglePIDController.setD(1)
 
